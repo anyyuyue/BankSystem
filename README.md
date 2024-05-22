@@ -21,9 +21,21 @@
 
 ## 运行方式
 
-启动后端 `python manage.py runserver` 或者是 `python3 manage.py runserver` 
+### 启动后端 
+
+`python manage.py runserver` 或者是 `python3 manage.py runserver` 
 
 访问写好的内容只需要在浏览器中访问配置好的路由，问号后面是需要的参数，例如:
 
 `http://127.0.0.1:8000/api/pay_to?account_in_id=1&account_out_id=2&amount=1000&date=2024-05-22`
 `http://127.0.0.1:8000/api/show_month_bill?year=2024&month=5&account_in_id=1`
+
+### 启动前端
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+*但是现在还没有把前后端链接到一起*
