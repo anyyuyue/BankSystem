@@ -42,7 +42,7 @@ def show_month_bill(request):
         if not year or not month:
             raise ValueError("Year and month parameters are required.")
         bill = transfer_record.objects.filter(
-            account_in_id = request.GET['account_in_id'],
+            account_in_id=request.GET['account_in_id'],
             transfer_date__year=year,
             transfer_date__month=month
         )

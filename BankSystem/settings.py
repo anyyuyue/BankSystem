@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'rest_framework',
     'creditcard',
 ]
 
@@ -78,10 +77,10 @@ WSGI_APPLICATION = 'BankSystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': BASE_DIR / 'bank.db',
+        # change the content to your local database information
         'NAME': 'BankSystem',
         'USER': 'root',
-        'PASSWORD': 'lmy1009MySQL*',
+        'PASSWORD': '',
         'HOST': 'localhost',
     }
 }
