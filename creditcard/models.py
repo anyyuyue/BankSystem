@@ -7,7 +7,7 @@ class transfer_record(models.Model):
     account_in_id = models.IntegerField()
     account_out_id = models.IntegerField()
     transfer_amount = models.IntegerField()
-    transfer_date = models.DateField()
+    transfer_date = models.DateTimeField()
 
     def __str__(self):
         return self.transfer_record_id

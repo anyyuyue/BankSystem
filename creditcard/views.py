@@ -1,10 +1,9 @@
 import json
-
-from django.core import serializers
-from django.db.models import Sum
-from django.http import JsonResponse
-from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from django.core import serializers
+from django.http import JsonResponse
+from django.db.models import Sum
+from datetime import datetime
 
 from creditcard.models import *
 
@@ -18,7 +17,8 @@ def pay_to(request):
             account_in_id=request.GET['account_in_id'],
             account_out_id=request.GET['account_out_id'],
             transfer_amount=request.GET['amount'],
-            transfer_date=request.GET['date']
+            transfer_date=datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 使用当前时间作为交易日期
+            # transfer_date=request.GET['date']
         )
         new_transaction.save()
         response['status'] = 'success'
