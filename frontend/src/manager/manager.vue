@@ -4,16 +4,20 @@
       <el-aside class="aside">
         <el-menu active-text-color="#ffd04b" background-color="#444444" default-active="1" text-color="#fff"
                  style="height:100%; width: 100%; overflow: hidden" :router="true">
+          <!-- list title -->
           <div style="color: white; background-color: #181818;
-          width: 100%; height: 10vh; display: flex; align-items: center; justify-content: center;">
-            管理员
-          </div>
+          width: 100%; height: 10vh; display: flex; align-items: center; justify-content: center;">管理员</div>
+          <!-- menu-list in left-side-->
           <el-menu-item index="/manager/home">
-            <el-icon>
-              <Avatar />
-            </el-icon>
+            <el-icon> <Avatar /> </el-icon>
             <span>出纳员管理</span>
           </el-menu-item>
+
+          <el-menu-item index="/manager/credit_card_examiner">
+            <el-icon> <Avatar /> </el-icon>
+            <span>信用卡审核员管理</span>
+          </el-menu-item>
+
           <div style="height: 30px"></div>
           <a href="/cashier" style="margin-left: 40px;">
             <el-button type="danger">

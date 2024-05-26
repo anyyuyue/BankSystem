@@ -32,10 +32,11 @@
 
 ### 启动前端
 
+先进到目录，安装依赖
 ```
 cd frontend
 npm install
-npm run dev
 ```
+启动前端 `npm run dev`
 
 *但是现在还没有把前后端链接到一起*
