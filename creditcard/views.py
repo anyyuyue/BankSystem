@@ -1,16 +1,102 @@
 import json
-from django.views.decorators.http import require_http_methods
-from django.core import serializers
-from django.http import JsonResponse
+import datetime
 from django.db.models import Sum
-from datetime import datetime
+from django.core import serializers
+from django.shortcuts import render
+from django.core.serializers import serialize
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
+from .models import *
 
-from creditcard.models import *
+
+## 信用卡操作部分
+@require_http_methods(["GET"])
+def get_cards(request):
+    """
+    show all cards, return all credit cards
+    """
+    response = {}
+    try:
+        cards = CreditCard.objects.filter()
+        response['status'] = 'success'
+        response['message'] = 'Cards show successfully.'
+        response['error_num'] = 0
+        response['cardlist'] = json.loads(serializers.serialize('json', cards))
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
 
 
-# pay_to: add a record to the transfer_record
+@require_http_methods(["GET"])
+def addnewcard(request):
+    """
+    create a new card and return the card
+    """
+    response = {}
+    try:
+        # Create a new credit card
+        card = CreditCard().newcard()
+
+        # Serialize the card object to JSON format
+        card_json = serialize('json', [card], ensure_ascii=False)
+
+        # Prepare the response dictionary
+        response['status'] = 'success'
+        response['message'] = 'Cards added successfully.'
+        response['error_num'] = 0
+        response['card'] = card_json
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    # Use JsonResponse to return the response dictionary as JSON
+    return JsonResponse(response)
+
+
+@require_http_methods(["PUT"])
+def change_password(request):
+    """
+    Change the password of a credit card and return the card
+    """
+    response = {}
+    try:
+        # Parse the JSON body of the request
+        data = json.loads(request.body)
+
+        # Fetch the credit card using the account_id from URL parameters
+        card = CreditCard.objects.get(account_id=request.GET['account_id'])
+
+        # Get the new password from the parsed data
+        new_password = data['new_password']
+
+        # Update the password
+        card.modify_password(card, new_password=new_password)
+        card.save()
+
+        response['status'] = 'success'
+        response['message'] = 'Password has been changed successfully.'
+        response['error_num'] = 0
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    # Use JsonResponse to return the response dictionary as JSON
+    return JsonResponse(response)
+
+
+## 账单操作部分
 @require_http_methods(["GET"])
 def pay_to(request):
+    """
+    add a record to the transfer_record
+    """
     response = {}
     try:
         new_transaction = Transaction(
@@ -32,9 +118,11 @@ def pay_to(request):
     return JsonResponse(response)
 
 
-# show_month_bill: 'user' get the bill of 'year''month'
 @require_http_methods(["GET"])
 def show_month_bill(request):
+    """
+    'user' get the bill of 'year''month'
+    """
     response = {}
     try:
         year = request.GET['year']
@@ -59,9 +147,11 @@ def show_month_bill(request):
     return JsonResponse(response)
 
 
-# show_pay: show the detail-information and result of a pay_record (show frontend result)
 @require_http_methods(["GET"])
 def show_pay_info(request):
+    """
+    show the detail-information and result of a pay_record (show frontend result)
+    """
     response = {}
     try:
         transaction = Transaction.objects.filter(
@@ -71,6 +161,51 @@ def show_pay_info(request):
         response['status'] = 'success'
         response['message'] = 'All payment infos have been saved.'
         response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def add_new_examiner(request, employee_id, sys_manager_id):
+    """
+    add a new examiner and return the examiner
+    """
+    response = {}
+    sys_manager = SystemManager.objects.get(sys_manager_id=sys_manager_id)
+    try:
+        new_examiner = sys_manager.add_credit_examiner(employee_id=employee_id)
+        new_examiner_json = serialize('json', [new_examiner], ensure_ascii=False)
+
+        # Prepare the response dictionary
+        response['status'] = 'success'
+        response['message'] = 'Cards added successfully.'
+        response['error_num'] = 0
+        response['new_examiner'] = new_examiner_json
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    # Use JsonResponse to return the response dictionary as JSON
+    return JsonResponse(response)
+
+
+def get_applications():
+    """
+    show all applications, return all applications
+    """
+    response = {}
+    try:
+        applications = CreditCardApplication.objects.filter()
+        response['status'] = 'success'
+        response['message'] = 'Applications show successfully.'
+        response['error_num'] = 0
+        response['applicationlist'] = json.loads(serializers.serialize('json', applications))
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
