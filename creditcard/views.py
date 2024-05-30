@@ -13,7 +13,7 @@ from creditcard.models import *
 def pay_to(request):
     response = {}
     try:
-        new_transaction = transfer_record(
+        new_transaction = Transaction(
             account_in_id=request.GET['account_in_id'],
             account_out_id=request.GET['account_out_id'],
             transfer_amount=request.GET['amount'],
@@ -41,7 +41,7 @@ def show_month_bill(request):
         month = request.GET['month']
         if not year or not month:
             raise ValueError("Year and month parameters are required.")
-        bill = transfer_record.objects.filter(
+        bill = Transaction.objects.filter(
             account_in_id=request.GET['account_in_id'],
             transfer_date__year=year,
             transfer_date__month=month
@@ -64,7 +64,7 @@ def show_month_bill(request):
 def show_pay_info(request):
     response = {}
     try:
-        transaction = transfer_record.objects.filter(
+        transaction = Transaction.objects.filter(
             transfer_record_id=request.GET['transfer_record_id'],
         )
         response['list'] = json.loads(serializers.serialize('json', transaction))
