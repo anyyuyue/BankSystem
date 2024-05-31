@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 
 
+# 所有职员（应该在其他模块中定义，这里先定义一下方便测试使用）
 class Employee(models.Model):
     employee_id = models.AutoField(primary_key=True)
     employee_name = models.CharField(max_length=20, default='name')
@@ -10,48 +11,25 @@ class Employee(models.Model):
 
 
 # 信用卡审查员
-
 class CreditCardExaminer(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    credit_examiner_id = models.AutoField(primary_key=True)  # 设置审核员id
+    credit_examiner_id = models.AutoField(primary_key=True)
     check_authority = models.BooleanField(default=False)
     account = models.CharField(max_length=30, default='000000')
     password = models.CharField(max_length=20, default='password')
 
-    def examine_application(self, apply_id, credit_state):
-        application = CreditCardApplication.objects.get(apply_id=apply_id)
-        application.creditCardExaminer = self
-        application.apply_status = True
-        if credit_state in ['good', 'excellent']:
-            application.apply_result = True
-            CreditCard.newcard(application.online_user)  # Assuming a method to create a credit card directly
-        else:
-            application.apply_id_result = False
-        application.save()
-
-
-class SystemManager(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    sys_manager_id = models.AutoField(primary_key=True)
-    account = models.CharField(max_length=30, default='000000')
-    password = models.CharField(max_length=20, default='password')
-
-    def add_credit_examiner(self, employee_id):
-
+    def add_credit_examiner(employee_id):
         try:
-            employee = Employee.objects.get(id=employee_id)
-
-            # Check if this employee is already a system manager or a credit examiner
-            if SystemManager.objects.filter(employee=employee).exists():
-                raise ValueError("This employee is already a system manager.")
+            employee = Employee.objects.get(employee_id=employee_id)
             if CreditCardExaminer.objects.filter(employee=employee).exists():
                 raise ValueError("This employee is already a creditcard examiner.")
 
-            # If checks pass, create a new CreditCardExaminer
+            # create a new CreditCardExaminer
             new_examiner = CreditCardExaminer(
                 employee=employee,
                 account=employee.identity_card,  # Example account name generation
-                password='default_password'  # You would want to set a proper password mechanism
+                password='password',
+                check_authority=1  # default grant the authority
             )
             new_examiner.save()
             return new_examiner
@@ -59,45 +37,31 @@ class SystemManager(models.Model):
         except ObjectDoesNotExist:
             raise ValueError("No such employee exists.")
 
-    def delete_credit_examiner(self, employee_id):
-        try:
-            examiner = CreditCardExaminer.objects.get(employee__id=employee_id)
-            examiner.delete()
-            return f"Credit examiner with employee ID {employee_id} deleted successfully."
-        except CreditCardExaminer.DoesNotExist:
-            return "No such credit examiner found."
+    def modify_examiner_info(self, new_account, new_password):
+        """更改审核员账号信息"""
+        # new account is same as others account, not allow
+        if not self.account == new_account and CreditCardExaminer.objects.filter(account=new_account).exists():
+            raise ValueError("This account already exists.")
+        else:
+            self.account = new_account
+        # new password is the same as the old one, not allow
+        if self.password == new_password:
+            raise ValueError("New password is the same as the old one")
+        else:
+            self.password = new_password
+            self.save()
 
-    def modify_credit_examiner(self, employee_id, new_account=None, new_password=None, new_authority=None):
-        try:
-            examiner = CreditCardExaminer.objects.get(employee__id=employee_id)
-            if new_account:
-                examiner.account = new_account
-            if new_password:
-                examiner.password = new_password
-            if new_authority:
-                examiner.check_authority = new_authority
-            examiner.save()
-            return f"Credit examiner with employee ID {employee_id} updated successfully."
-        except CreditCardExaminer.DoesNotExist:
-            return "No such credit examiner found."
+    def grant(self):
+        if self.check_authority:
+            raise ValueError("This account is authorized, can't grant it.")
+        else:
+            self.check_authority = True
 
-    def grant_credit_examiner(self, employee_id):
-        try:
-            examiner = CreditCardExaminer.objects.get(employee__id=employee_id)
-            examiner.check_authority = True
-            examiner.save()
-            return f"Credit examiner with employee ID {employee_id} granted check authority."
-        except CreditCardExaminer.DoesNotExist:
-            return "No such credit examiner found."
-
-    def revoke_credit_examiner(self, employee_id):
-        try:
-            examiner = CreditCardExaminer.objects.get(employee__id=employee_id)
-            examiner.check_authority = False
-            examiner.save()
-            return {"success": True}
-        except CreditCardExaminer.DoesNotExist:
-            return {"success": False, "error": "Examiner not found"}
+    def revoke(self):
+        if not self.check_authority:
+            raise ValueError("This account is not authorized, can't revoke it.")
+        else:
+            self.check_authority = False
 
 
 class Online_user(models.Model):
@@ -121,7 +85,7 @@ class CreditCard(models.Model):
     DEFAULT_CREDIT_LIMIT = 1000.0  # 默认信用额度
 
     @staticmethod
-    def newcard(online_user_id):
+    def new_card(online_user_id):
         new_card = CreditCard()
         new_card.online_user = Online_user.objects.get(person_id=online_user_id)
         new_card.save()

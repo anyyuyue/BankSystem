@@ -2,14 +2,13 @@ import json
 from datetime import datetime
 from django.db.models import Sum
 from django.core import serializers
-from django.shortcuts import render
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from .models import *
 
 
-## 信用卡操作部分
+# 信用卡操作部分---------------------------------------------------------------------------
 @require_http_methods(["GET"])
 def get_cards(request):
     """
@@ -40,7 +39,7 @@ def add_new_card(request):
     try:
         # Create a new credit card
         online_user_id = request.GET['online_user_id']
-        card = CreditCard().newcard(online_user_id)
+        card = CreditCard().new_card(online_user_id)
         # Serialize the card object to JSON format
         card_json = serialize('json', [card], ensure_ascii=False)
 
@@ -91,7 +90,93 @@ def change_password(request):
     return JsonResponse(response)
 
 
-## 账单操作部分
+@require_http_methods(["GET"])
+def frozen_card(request):
+    response = {}
+    try:
+        card = CreditCard.objects.get(account_id=request.GET['account_id'])
+        card.frozen_card()
+        response['status'] = 'success'
+        response['message'] = 'New application has been created.'
+        response['card'] = serialize('json', [card], ensure_ascii=False)
+        response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def update_limit(request):
+    response = {}
+    try:
+        card = CreditCard.objects.get(account_id=request.GET['account_id'])
+        amount = request.GET['amount']
+        card.update_credit_limit(amount)
+        response['status'] = 'success'
+        response['message'] = 'Limit has been updated.'
+        response['card'] = serialize('json', [card], ensure_ascii=False)
+        response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+def cancel_card(request):
+    response = {}
+    try:
+        card = CreditCard.objects.get(account_id=request.GET['account_id'])
+        card.cancel_card()
+        response['status'] = 'success'
+        response['message'] = 'Card has been cancelled.'
+        response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+
+def repay(request):
+    response = {}
+    try:
+        amount = float(request.GET['amount'])
+        card = CreditCard.objects.get(account_id=request.GET['account_id'])
+        pay_account = int(request.GET['pay_account'])
+        card.credit_repay(amount, pay_account)
+        response['status'] = 'success'
+        response['message'] = 'Payment has been completed.'
+        response['card'] = serialize('json', [card], ensure_ascii=False)
+        response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+def lost_card(request):
+    response = {}
+    try:
+        card = CreditCard.objects.get(account_id=request.GET['account_id'])
+        card.report_lost()
+        response['status'] = 'success'
+        response['message'] = 'Card has been reported lost successfully.'
+        response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+
+# 账单操作部分------------------------------------------------------------------------------
 @require_http_methods(["GET"])
 def pay_to(request):
     """
@@ -169,23 +254,20 @@ def show_pay_info(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["POST"])
-def add_new_examiner(request):
+# 信用卡审核员部分----------------------------------------------------------------------------
+@require_http_methods(["GET"])
+def add_examiner(request):
     """
-    add a new examiner and return the examiner
+    get employee_id, add a new examine, return the examiner
     """
     response = {}
-    sys_manager_id = request.GET['sys_manager_id']
-    employee_id = request.GET['employee_id']
-
-    sys_manager = SystemManager.objects.get(sys_manager_id=sys_manager_id)
     try:
-        new_examiner = sys_manager.add_credit_examiner(employee_id=employee_id)
+        new_examiner = CreditCardExaminer.add_credit_examiner(employee_id=request.GET['employee_id'])
         new_examiner_json = serialize('json', [new_examiner], ensure_ascii=False)
 
         # Prepare the response dictionary
         response['status'] = 'success'
-        response['message'] = 'Cards added successfully.'
+        response['message'] = 'Examiner added successfully.'
         response['error_num'] = 0
         response['new_examiner'] = new_examiner_json
 
@@ -194,10 +276,128 @@ def add_new_examiner(request):
         response['message'] = str(e)
         response['error_num'] = 1
 
-    # Use JsonResponse to return the response dictionary as JSON
     return JsonResponse(response)
 
 
+@require_http_methods(["GET"])
+def get_examiners(request):
+    """
+    show all examiners
+    """
+    response = {}
+    try:
+        examiners = CreditCardExaminer.objects.filter()
+        response['status'] = 'success'
+        response['message'] = 'Applications show successfully.'
+        response['error_num'] = 0
+        response['list'] = json.loads(serializers.serialize('json', examiners))
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def modify_examiner(request):
+    """
+    Modify an existing examiner's information(account & password)
+    """
+    response = {}
+    try:
+        # Fetch the examiner using the examiner_id from URL parameters
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        # Get the new information
+        new_account = request.GET['new_account']
+        new_password = request.GET['new_password']
+
+        # Update the password
+        examiner.modify_examiner_info(new_account, new_password)
+        examiner.save()
+
+        response['status'] = 'success'
+        response['message'] = 'Examiner info has been modified successfully.'
+        response['error_num'] = 0
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def grant_authority(request):
+    """
+    Grant an existing examiner the authority to examine
+    """
+    response = {}
+    try:
+        # Fetch the examiner using the examiner_id from URL parameters
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        # Set authority
+        examiner.grant()
+        examiner.save()
+
+        response['status'] = 'success'
+        response['message'] = 'Grant authority successfully.'
+        response['error_num'] = 0
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def revoke_authority(request):
+    """
+    Revoke the authority of an existing examiner
+    """
+    response = {}
+    try:
+        # Fetch the examiner using the examiner_id from URL parameters
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        # Revoke authority
+        examiner.revoke()
+        examiner.save()
+
+        response['status'] = 'success'
+        response['message'] = 'Revoke authority successfully.'
+        response['error_num'] = 0
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def delete_examiner(request):
+    """
+    Delete an existing examiner
+    """
+    response = {}
+    try:
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        examiner.delete()
+        response['status'] = 'success'
+        response['message'] = 'Examiner has been deleted successfully.'
+        response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+
+# 申请管理部分-----------------------------------------------------------------------------------------
 @require_http_methods(["GET"])
 def get_applications(request):
     """
@@ -290,90 +490,4 @@ def change_application_state(request):
         response['message'] = str(e)
         response['error_num'] = 1
 
-    return JsonResponse(response)
-
-
-@require_http_methods(["GET"])
-def frozen_card(request):
-    response = {}
-    try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.frozen_card()
-        response['status'] = 'success'
-        response['message'] = 'New application has been created.'
-        response['card'] = serialize('json', [card], ensure_ascii=False)
-        response['error_num'] = 0
-    except Exception as e:
-        response['status'] = 'error'
-        response['message'] = str(e)
-        response['error_num'] = 1
-
-    return JsonResponse(response)
-
-
-@require_http_methods(["GET"])
-def update_limit(request):
-    response = {}
-    try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        amount = request.GET['amount']
-        card.update_credit_limit(amount)
-        response['status'] = 'success'
-        response['message'] = 'Limit has been updated.'
-        response['card'] = serialize('json', [card], ensure_ascii=False)
-        response['error_num'] = 0
-    except Exception as e:
-        response['status'] = 'error'
-        response['message'] = str(e)
-        response['error_num'] = 1
-
-    return JsonResponse(response)
-
-
-def cancel_card(request):
-    response = {}
-    try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.cancel_card()
-        response['status'] = 'success'
-        response['message'] = 'Card has been cancelled.'
-        response['error_num'] = 0
-    except Exception as e:
-        response['status'] = 'error'
-        response['message'] = str(e)
-        response['error_num'] = 1
-    return JsonResponse(response)
-
-
-def repay(request):
-    response = {}
-    try:
-        amount = float(request.GET['amount'])
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        pay_account = int(request.GET['pay_account'])
-        card.credit_repay(amount, pay_account)
-        response['status'] = 'success'
-        response['message'] = 'Payment has been completed.'
-        response['card'] = serialize('json', [card], ensure_ascii=False)
-        response['error_num'] = 0
-    except Exception as e:
-        response['status'] = 'error'
-        response['message'] = str(e)
-        response['error_num'] = 1
-
-    return JsonResponse(response)
-
-
-def lost_card(request):
-    response = {}
-    try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.report_lost()
-        response['status'] = 'success'
-        response['message'] = 'Card has been reported lost successfully.'
-        response['error_num'] = 0
-    except Exception as e:
-        response['status'] = 'error'
-        response['message'] = str(e)
-        response['error_num'] = 1
     return JsonResponse(response)

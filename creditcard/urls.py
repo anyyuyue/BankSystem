@@ -27,7 +27,7 @@ urlpatterns = [
     # http://127.0.0.1:8000/api/repay?account_id=2&amount=200
     # http://127.0.0.1:8000/api/repay?account_id=2&amount=200&pay_account=3
     path('lost_card', views.lost_card),
-    # 挂失卡
+    # 挂失卡 http://127.0.0.1:8000/api/lost_card?account_id=1
 
 
     path('add_new_card', views.add_new_card),
@@ -36,12 +36,18 @@ urlpatterns = [
     # 显示所有的申请 http://127.0.0.1:8000/api/get_applications
     path('change_application_state', views.change_application_state),
     # 审核申请 http://127.0.0.1:8000/api/change_application_state?examiner_id=1&apply_id=1&apply_result=1
-    
-    # path('add_examiner', views.add_examiner),
-    # path('get_examiners', views.get_examiners),
-    # path('change_examiner', views.change_examiner),
-    # path('grant_authority', views.grant_authority),
-    # path('revoke_authority', views.revoke_authority),
 
+    path('add_examiner', views.add_examiner),
+    # 添加信用卡审查员 http://127.0.0.1:8000/api/add_examiner?employee_id=1
+    path('get_examiners', views.get_examiners),
+    # 显示所有的审查员 http://127.0.0.1:8000/api/get_examiners
+    path('modify_examiner', views.modify_examiner),
+    # 修改信用卡审查员信息 http://127.0.0.1:8000/api/modify_examiner?examiner_id=1&new_account=666&new_password=888
+    path('grant_authority', views.grant_authority),
+    # 授予权限 http://127.0.0.1:8000/api/grant_authority?examiner_id=1
+    path('revoke_authority', views.revoke_authority),
+    # 收回权限 http://127.0.0.1:8000/api/revoke_authority?examiner_id=1
+    path('delete_examiner', views.delete_examiner),
+    # 删除信用卡审查员 http://127.0.0.1:8000/api/delete_examiner?examiner_id=1
 
 ]
