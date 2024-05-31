@@ -33,8 +33,10 @@ urlpatterns = [
     path('add_new_card', views.add_new_card),
     # 审核员新建卡 http://127.0.0.1:8000/api/add_new_card?online_user_id=1
     path('get_applications', views.get_applications),  # 审核员看
-    # path('change_application_state', views.change_application_state),
-    #
+    # 显示所有的申请 http://127.0.0.1:8000/api/get_applications
+    path('change_application_state', views.change_application_state),
+    # 审核申请 http://127.0.0.1:8000/api/change_application_state?examiner_id=1&apply_id=1&apply_result=1
+    
     # path('add_examiner', views.add_examiner),
     # path('get_examiners', views.get_examiners),
     # path('change_examiner', views.change_examiner),

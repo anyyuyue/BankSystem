@@ -199,7 +199,7 @@ def add_new_examiner(request):
 
 
 @require_http_methods(["GET"])
-def get_applications():
+def get_applications(request):
     """
     show all applications, return all applications
     """
@@ -209,7 +209,7 @@ def get_applications():
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
         response['error_num'] = 0
-        response['applicationlist'] = json.loads(serializers.serialize('json', applications))
+        response['list'] = json.loads(serializers.serialize('json', applications))
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
@@ -257,6 +257,34 @@ def get_application_at(request):
         response['message'] = 'Get applications successfully.'
         response['application_list'] = json.loads(serializers.serialize('json', applications))
         response['error_num'] = 0
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def change_application_state(request):
+    """
+    Examiner change the state of a credit card application
+    """
+    response = {}
+    try:
+        # Fetch the application using the apply_id from URL parameters
+        apply = CreditCardApplication.objects.get(apply_id=request.GET['apply_id'])
+        # Get the result and examiner_id
+        apply_result = request.GET['apply_result']
+        examiner_id = request.GET['examiner_id']
+        # Update the apply_status and apply_result
+        apply.change_state(apply_result, examiner_id)
+        apply.save()
+
+        response['status'] = 'success'
+        response['message'] = 'The application has been examined.'
+        response['error_num'] = 0
+
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
