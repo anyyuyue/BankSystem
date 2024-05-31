@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
 
     path('get_cards', views.get_cards),
-    # 显示用户的所有卡 http://127.0.0.1:8000/api/get_cards
+    # 显示用户的所有卡 http://127.0.0.1:8000/api/get_cards?online_user_id=1
     path('new_application', views.new_application),
     # 用户申请信用卡 http://127.0.0.1:8000/api/new_application?online_user_id=1
     path('get_application_at', views.get_application_at),

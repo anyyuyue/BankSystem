@@ -17,7 +17,8 @@ def get_cards(request):
     """
     response = {}
     try:
-        cards = CreditCard.objects.filter()
+        online_user_id = request.GET['online_user_id']
+        cards = CreditCard.objects.filter(online_user=Online_user.objects.get(person_id=online_user_id))
         response['status'] = 'success'
         response['message'] = 'Cards show successfully.'
         response['error_num'] = 0
