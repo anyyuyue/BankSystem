@@ -1,23 +1,23 @@
-# BankSystem
+# CreditcardSystem
 
-包含两个目录
+官方操作手册：https://docs.djangoproject.com/zh-hans/5.0/intro/tutorial01
 
-- BankSystem: 系统的相关设置
-- creditcard: 信用卡子模块内容
-- frontend: 前端内容
-
-## BankSystem
-
-
-- `setting` 系统设置 ( 将DATABASES[  ] 中改成内容自己数据库的信息，所有目前的问题是不知道怎么多人同时访问同一个数据库。)
-- `urls` 配置路由 ( 目前所有 creditcard 中的内容都放到了 /api)
-
+- `CreditcardSystem/settings.py` 系统设置 中 将`DATABASES[  ]` 中改成内容自己数据库的信息
 
 ## creditcard
 
-- `models` 定义数据库表 
-- `views` 定义函数方法
-- `urls` 配置路由
+1. 编辑 models.py 文件，改变模型。
+2. 运行 `python manage.py makemigrations` 为模型的改变生成迁移文件。
+3. 运行 `python manage.py migrate` 数据库根据迁移文件更改表
+
+- `creditcard/urls.py` 配置路由 
+
+    目前所有 creditcard 中的内容都放到了 /creditcard, 详见`CreditcardSystem/urls.py`,`admin`可能有所不同
+
+- `models` 定义数据库表
+- `admin`是管理员的表
+- `views` 定义函数方法，可参照
+- `urls` 配置路由，给不同函数配置不同地址以便检查
 
 ## 运行方式
 
@@ -27,8 +27,10 @@
 
 访问写好的内容只需要在浏览器中访问配置好的路由，问号后面是需要的参数，例如:
 
-`http://127.0.0.1:8000/api/pay_to?account_in_id=1&account_out_id=2&amount=1000&date=2024-05-22`
-`http://127.0.0.1:8000/api/show_month_bill?year=2024&month=5&account_in_id=1`
+`http://127.0.0.1:8000/api/pay_to?account_in_id=1&account_out_id=2&amount=1000`
+`http://127.0.0.1:8000/api/show_month_bill?account_in_id=1&year=2024&month=5`
+
+界面上出现数据库内容即连接成功
 
 ### 启动前端
 

@@ -111,7 +111,7 @@ class CreditCard(models.Model):
     account_id = models.AutoField(primary_key=True)  # 使用AutoField自动ID
     password = models.CharField(max_length=20, default='password')  # 设置默认密码
     card_type = models.CharField(max_length=10, default='credit')
-    online_user = models.ForeignKey(Online_user, on_delete=models.CASCADE, null=True)
+    online_user = models.ForeignKey(Online_user, on_delete=models.CASCADE, default=None)
     credit_limit = models.FloatField(default=1000.0)
     balance = models.FloatField(default=0.0)
     is_frozen = models.BooleanField(default=False)
@@ -121,8 +121,9 @@ class CreditCard(models.Model):
     DEFAULT_CREDIT_LIMIT = 1000.0  # 默认信用额度
 
     @staticmethod
-    def newcard(online_user):
-        new_card = CreditCard(online_user=online_user)
+    def newcard(online_user_id):
+        new_card = CreditCard()
+        new_card.online_user = Online_user.objects.get(person_id=online_user_id)
         new_card.save()
         return new_card
 
@@ -149,27 +150,30 @@ class CreditCard(models.Model):
     def update_credit_limit(self, new_limit):
         """更新信用额度"""
         if self.is_lost or self.is_frozen:
-            return False
+            raise ValueError("Can't change credit limit since it's lost or frozen.")
         self.credit_limit = new_limit
         self.save()
         return True
 
-    def credit_repay(self, amount):
+    def credit_repay(self, amount, pay_account_id):
         """还款，输入还款金额"""
         if amount < 0.0:
             raise ValueError("Amount cannot be negative.")
-        self.balance -= amount
-        if self.balance <= 0.0:
-            self.credit_limit = self.DEFAULT_CREDIT_LIMIT
+        if pay_account_id is None:
+            if self.balance - amount >= 0.0:
+                self.balance -= amount
+                self.credit_limit = self.DEFAULT_CREDIT_LIMIT
+            else:
+                raise ValueError("No pay account and card balance is not enough to repay.")
+        else:
+            pay_account = CreditCard.objects.get(account_id=pay_account_id)
+            if pay_account.balance - amount >= 0.0:
+                pay_account.balance -= amount
+                self.credit_limit = self.DEFAULT_CREDIT_LIMIT
+                pay_account.save()
+            else:
+                raise ValueError("Both card and pay account's balance is not enough to repay.")
         self.save()
-
-    def get_lost_state(self):
-        """获取挂失状态"""
-        return self.is_lost
-
-    def get_frozen_state(self):
-        """获取冻结状态"""
-        return self.is_frozen
 
     def frozen_card(self):
         """冻结信用卡"""
@@ -193,15 +197,17 @@ class Transaction(models.Model):
 class CreditCardApplication(models.Model):
     apply_id = models.AutoField(primary_key=True)
     online_user = models.ForeignKey(Online_user, on_delete=models.CASCADE)
-    creditCardExaminer = models.ForeignKey(CreditCardExaminer, on_delete=models.CASCADE)
+    creditCardExaminer = models.ForeignKey(CreditCardExaminer, on_delete=models.CASCADE, null=True, default=None)
     apply_status = models.BooleanField(default=False)
     apply_result = models.BooleanField(default=False)
     apply_date = models.DateTimeField(default=timezone.now)
 
     DEFAULT_CREDIT_LIMIT = 1000.0  # 默认信用额度
 
-    def new_apply(self):
-        new_application = CreditCardApplication(online_user=self.online_user)
+    @staticmethod
+    def new_apply(online_user_id):
+        new_application = CreditCardApplication()
+        new_application.online_user = Online_user.objects.get(person_id=online_user_id)
         new_application.save()
         return new_application
 
