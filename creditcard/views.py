@@ -255,14 +255,14 @@ def show_pay_info(request):
 
 
 # 信用卡审核员部分----------------------------------------------------------------------------
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def add_examiner(request):
     """
     get employee_id, add a new examine, return the examiner
     """
     response = {}
     try:
-        new_examiner = CreditCardExaminer.add_credit_examiner(employee_id=request.GET['employee_id'])
+        new_examiner = CreditCardExaminer.add_credit_examiner(employee_id=request.POST.get['employee_id'])
         new_examiner_json = serialize('json', [new_examiner], ensure_ascii=False)
 
         # Prepare the response dictionary
@@ -288,7 +288,7 @@ def get_examiners(request):
     try:
         examiners = CreditCardExaminer.objects.filter()
         response['status'] = 'success'
-        response['message'] = 'Applications show successfully.'
+        response['message'] = 'Examiners show successfully.'
         response['error_num'] = 0
         response['list'] = json.loads(serializers.serialize('json', examiners))
     except Exception as e:
@@ -299,7 +299,7 @@ def get_examiners(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def modify_examiner(request):
     """
     Modify an existing examiner's information(account & password)
@@ -307,10 +307,10 @@ def modify_examiner(request):
     response = {}
     try:
         # Fetch the examiner using the examiner_id from URL parameters
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get['examiner_id'])
         # Get the new information
-        new_account = request.GET['new_account']
-        new_password = request.GET['new_password']
+        new_account = request.POST.get['new_account']
+        new_password = request.POST.get['new_password']
 
         # Update the password
         examiner.modify_examiner_info(new_account, new_password)
@@ -328,7 +328,7 @@ def modify_examiner(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def grant_authority(request):
     """
     Grant an existing examiner the authority to examine
@@ -336,7 +336,7 @@ def grant_authority(request):
     response = {}
     try:
         # Fetch the examiner using the examiner_id from URL parameters
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get['examiner_id'])
         # Set authority
         examiner.grant()
         examiner.save()
@@ -353,7 +353,7 @@ def grant_authority(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def revoke_authority(request):
     """
     Revoke the authority of an existing examiner
@@ -361,7 +361,7 @@ def revoke_authority(request):
     response = {}
     try:
         # Fetch the examiner using the examiner_id from URL parameters
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get['examiner_id'])
         # Revoke authority
         examiner.revoke()
         examiner.save()
@@ -378,14 +378,14 @@ def revoke_authority(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def delete_examiner(request):
     """
     Delete an existing examiner
     """
     response = {}
     try:
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.GET['examiner_id'])
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get('examiner_id'))
         examiner.delete()
         response['status'] = 'success'
         response['message'] = 'Examiner has been deleted successfully.'
