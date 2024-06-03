@@ -186,7 +186,7 @@ export default{
       //发出
       axios.post( "/api/modify_examiner",
       {
-        examiner_id: this.examiner_id,
+        examiner_id: this.modifyInfo.examiner_id,
         new_account: this.modifyInfo.new_account,
         new_password: this.modifyInfo.new_password,
       }).then(response => {
