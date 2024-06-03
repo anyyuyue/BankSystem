@@ -7,6 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
+from itertools import chain
 
 
 # 信用卡操作部分---------------------------------------------------------------------------
@@ -17,12 +18,14 @@ def get_cards(request):
     """
     response = {}
     try:
-        online_user_id = request.GET['online_user_id']
+        online_user_id = request.GET.get('online_user_id')
+        if not online_user_id:
+            raise ValueError("online_user_id is required")
         cards = CreditCard.objects.filter(online_user=Online_user.objects.get(person_id=online_user_id))
         response['status'] = 'success'
         response['message'] = 'Cards show successfully.'
         response['error_num'] = 0
-        response['cardlist'] = json.loads(serializers.serialize('json', cards))
+        response['list'] = json.loads(serializers.serialize('json', cards))
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
@@ -44,7 +47,7 @@ def add_new_card(request):
         body = json.loads(body_unicode)
 
         online_user_id = body.get('online_user_id')
-        card = CreditCard().new_card(online_user_id)
+        CreditCard().new_card(online_user_id)
 
         # Prepare the response dictionary
         response['status'] = 'success'
@@ -92,15 +95,26 @@ def change_password(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def frozen_card(request):
     response = {}
     try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.frozen_card()
+        # 解析 JSON 数据
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        account_id = body.get('account_id')
+        if not account_id:
+            raise ValueError("account_id is required")
+        password = body.get('password')
+        if not password:
+            raise ValueError("password is required")
+        card = CreditCard.objects.get(account_id=account_id)
+        card.frozen_card(password)
+
         response['status'] = 'success'
         response['message'] = 'New application has been created.'
-        response['card'] = serialize('json', [card], ensure_ascii=False)
         response['error_num'] = 0
     except Exception as e:
         response['status'] = 'error'
@@ -110,13 +124,26 @@ def frozen_card(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def update_limit(request):
     response = {}
     try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        amount = request.GET['amount']
-        card.update_credit_limit(amount)
+        # 解析 JSON 数据
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        account_id = body.get('account_id')
+        if not account_id:
+            raise ValueError("account_id is required")
+        amount = body.get('amount')
+        if not amount:
+            raise ValueError("amount is required")
+        password = body.get('password')
+        if not password:
+            raise ValueError("password is required")
+        card = CreditCard.objects.get(account_id=account_id)
+        card.update_credit_limit(password, amount)
         response['status'] = 'success'
         response['message'] = 'Limit has been updated.'
         response['card'] = serialize('json', [card], ensure_ascii=False)
@@ -144,16 +171,26 @@ def cancel_card(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def repay(request):
     response = {}
     try:
-        amount = float(request.GET['amount'])
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        pay_account = int(request.GET['pay_account'])
-        card.credit_repay(amount, pay_account)
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        account_id = body.get('account_id')
+        pay_account = body.get('pay_account')
+        pay_password = body.get('pay_password')
+        amount = body.get('amount')
+        print(account_id, pay_account, pay_password, amount)
+
+        pay_card = CreditCard.objects.get(account_id=pay_account)
+        repay_card = CreditCard.objects.get(account_id=account_id)
+        pay_card.transfer_out(amount, pay_password)
+        repay_card.transfer_in(amount)
+
         response['status'] = 'success'
         response['message'] = 'Payment has been completed.'
-        response['card'] = serialize('json', [card], ensure_ascii=False)
         response['error_num'] = 0
     except Exception as e:
         response['status'] = 'error'
@@ -163,11 +200,23 @@ def repay(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def lost_card(request):
     response = {}
     try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.report_lost()
+        # 解析 JSON 数据
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        account_id = body.get('account_id')
+        if not account_id:
+            raise ValueError("account_id is required")
+        password = body.get('password')
+        if not password:
+            raise ValueError("password is required")
+        card = CreditCard.objects.get(account_id=account_id)
+        card.report_lost(password)
         response['status'] = 'success'
         response['message'] = 'Card has been reported lost successfully.'
         response['error_num'] = 0
@@ -179,21 +228,37 @@ def lost_card(request):
 
 
 # 账单操作部分------------------------------------------------------------------------------
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def pay_to(request):
     """
     add a record to the transfer_record
     """
     response = {}
     try:
+        # 解析json
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        account_in_id = body.get('account_in_id')
+        account_out_id = body.get('account_out_id')
+        amount = body.get('amount')
+        password = body.get('password')
+
+        # update the balance of payer and receiver
+        in_card = CreditCard.objects.get(account_id=account_in_id)
+        out_card = CreditCard.objects.get(account_id=account_out_id)
+        in_card.transfer_in(amount)
+        out_card.transfer_out(amount, password)
+
+        # update the information in transaction
         new_transaction = Transaction(
-            account_in_id=request.GET['account_in_id'],
-            account_out_id=request.GET['account_out_id'],
-            transfer_amount=request.GET['amount'],
+            account_in_id=body.get('account_in_id'),
+            account_out_id=body.get('account_out_id'),
+            transfer_amount=body.get('amount'),
             transfer_date=datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 使用当前时间作为交易日期
-            # transfer_date=request.GET['date']
         )
         new_transaction.save()
+
         response['status'] = 'success'
         response['message'] = 'New transaction has been created and saved successfully.'
         response['error_num'] = 0
@@ -216,12 +281,21 @@ def show_month_bill(request):
         month = request.GET['month']
         if not year or not month:
             raise ValueError("Year and month parameters are required.")
-        bill = Transaction.objects.filter(
-            account_in_id=request.GET['account_in_id'],
+        in_bill = Transaction.objects.filter(
+            account_in_id=request.GET['account_id'],
             transfer_date__year=year,
             transfer_date__month=month
         )
-        response['total_amount'] = bill.aggregate(total=Sum('transfer_amount'))['total'] or 0
+        out_bill = Transaction.objects.filter(
+            account_out_id=request.GET['account_id'],
+            transfer_date__year=year,
+            transfer_date__month=month
+        )
+        in_total_amount = in_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
+        out_total_amount = out_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
+
+        bill = list(chain(in_bill, out_bill))
+        response['total_amount'] = in_total_amount - out_total_amount
         response['list'] = json.loads(serializers.serialize('json', bill))
         response['status'] = 'success'
         response['message'] = 'All bills have been saved.'

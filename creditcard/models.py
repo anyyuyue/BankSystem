@@ -76,8 +76,8 @@ class CreditCard(models.Model):
     password = models.CharField(max_length=20, default='password')  # 设置默认密码
     card_type = models.CharField(max_length=10, default='credit')
     online_user = models.ForeignKey(Online_user, on_delete=models.CASCADE, default=None)
-    credit_limit = models.FloatField(default=1000.0)
-    balance = models.FloatField(default=0.0)
+    credit_limit = models.FloatField(default=1000.0)  # 信用额度
+    balance = models.FloatField(default=0.0)  # 待偿还的金额
     is_frozen = models.BooleanField(default=False)
     is_lost = models.BooleanField(default=False)
     due_date = models.DateTimeField(default=timezone.now)  # Automatically set to today's date as default
@@ -86,6 +86,7 @@ class CreditCard(models.Model):
 
     @staticmethod
     def new_card(online_user_id):
+        ## 需要加上更具不同的信用额度来判断
         new_card = CreditCard()
         new_card.online_user = Online_user.objects.get(person_id=online_user_id)
         new_card.save()
@@ -99,51 +100,86 @@ class CreditCard(models.Model):
         else:
             raise ValueError("New password is the same as the old one")
 
-    def report_lost(self):
+    def report_lost(self, password):
         """挂失信用卡，并自动冻结卡"""
-        self.is_lost = True
-        self.is_frozen = True
-        self.save()
-        return True
+        if password != self.password:
+            raise ValueError("密码不匹配")
+        elif self.is_lost:
+            raise ValueError("此卡已挂失")
+        elif self.is_frozen:
+            raise ValueError("此卡已冻结")
+        else:
+            self.is_lost = True
+            self.is_frozen = True
+            self.save()
+            return True
 
     def cancel_card(self):
         """取消信用卡，删除记录"""
         self.delete()
         return True
 
-    def update_credit_limit(self, new_limit):
+    def update_credit_limit(self, password, amount):
         """更新信用额度"""
-        if self.is_lost or self.is_frozen:
+        if password != self.password:
+            raise ValueError("密码不匹配")
+        elif self.is_lost or self.is_frozen:
             raise ValueError("Can't change credit limit since it's lost or frozen.")
-        self.credit_limit = new_limit
-        self.save()
-        return True
-
-    def credit_repay(self, amount, pay_account_id):
-        """还款，输入还款金额"""
-        if amount < 0.0:
-            raise ValueError("Amount cannot be negative.")
-        if pay_account_id is None:
-            if self.balance - amount >= 0.0:
-                self.balance -= amount
-                self.credit_limit = self.DEFAULT_CREDIT_LIMIT
-            else:
-                raise ValueError("No pay account and card balance is not enough to repay.")
         else:
-            pay_account = CreditCard.objects.get(account_id=pay_account_id)
-            if pay_account.balance - amount >= 0.0:
-                pay_account.balance -= amount
-                self.credit_limit = self.DEFAULT_CREDIT_LIMIT
-                pay_account.save()
-            else:
-                raise ValueError("Both card and pay account's balance is not enough to repay.")
-        self.save()
+            self.credit_limit = amount
+            self.save()
+            return True
 
-    def frozen_card(self):
+    # def credit_repay(self, amount, pay_account_id):
+    #     """还款，输入还款金额"""
+    #     if amount < 0.0:
+    #         raise ValueError("Amount cannot be negative.")
+    #     if pay_account_id is None:
+    #         if self.balance - amount >= 0.0:
+    #             self.balance -= amount
+    #             self.credit_limit = self.DEFAULT_CREDIT_LIMIT
+    #         else:
+    #             raise ValueError("No pay account and card balance is not enough to repay.")
+    #     else:
+    #         pay_account = CreditCard.objects.get(account_id=pay_account_id)
+    #         if pay_account.balance - amount >= 0.0:
+    #             pay_account.balance -= amount
+    #             self.credit_limit = self.DEFAULT_CREDIT_LIMIT
+    #             pay_account.save()
+    #         else:
+    #             raise ValueError("Both card and pay account's balance is not enough to repay.")
+    #     self.save()
+
+    def frozen_card(self, password):
         """冻结信用卡"""
-        self.is_frozen = True
-        self.save()
-        return True
+        if password != self.password:
+            raise ValueError("密码不匹配")
+        elif self.is_frozen:
+            raise ValueError("此卡已冻结")
+        else:
+            self.is_frozen = True
+            self.save()
+            return True
+
+    def transfer_in(self, delta):
+        # 转入金额
+        if self.is_frozen or self.is_lost:
+            raise ValueError("信用卡已被冻结或挂失")
+        else:
+            self.balance -= delta
+            self.save()
+
+    def transfer_out(self, delta, password):
+        # 转出金额
+        if self.is_frozen or self.is_lost:
+            raise ValueError("已冻结或挂失")
+        elif self.password != password:
+            raise ValueError("密码错误")
+        elif self.credit_limit - self.balance < delta:
+            raise ValueError("余额不足")
+        else:
+            self.balance += delta
+            self.save()
 
 
 class Transaction(models.Model):
