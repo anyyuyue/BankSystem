@@ -7,6 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 
 
 # 信用卡操作部分---------------------------------------------------------------------------
@@ -133,10 +134,15 @@ def cancel_card(request):
     response = {}
     try:
         card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.cancel_card()
-        response['status'] = 'success'
-        response['message'] = 'Card has been cancelled.'
-        response['error_num'] = 0
+        if card.pasword == request.GET['password']:
+            card.cancel_card()
+            response['status'] = 'success'
+            response['message'] = 'Card has been cancelled.'
+            response['error_num'] = 0
+        else:
+            response['status'] = 'error'
+            response['message'] = 'Password is incorrect.'
+            response['error_num'] = 1
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
@@ -257,6 +263,7 @@ def show_pay_info(request):
 
 
 # 信用卡审核员部分----------------------------------------------------------------------------
+@csrf_exempt
 @require_http_methods(["POST"])
 def add_examiner(request):
     """
@@ -264,14 +271,14 @@ def add_examiner(request):
     """
     response = {}
     try:
-        new_examiner = CreditCardExaminer.add_credit_examiner(employee_id=request.POST.get['employee_id'])
-        new_examiner_json = serialize('json', [new_examiner], ensure_ascii=False)
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        employee_id = body.get('employee_id')
+        new_examiner = CreditCardExaminer.add_credit_examiner(employee_id)
 
-        # Prepare the response dictionary
         response['status'] = 'success'
         response['message'] = 'Examiner added successfully.'
         response['error_num'] = 0
-        response['new_examiner'] = new_examiner_json
 
     except Exception as e:
         response['status'] = 'error'
@@ -301,6 +308,7 @@ def get_examiners(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def modify_examiner(request):
     """
@@ -309,18 +317,23 @@ def modify_examiner(request):
     response = {}
     try:
         # Fetch the examiner using the examiner_id from URL parameters
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get['examiner_id'])
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        examiner_id = int(body.get('examiner_id'))
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=examiner_id)
         # Get the new information
-        new_account = request.POST.get['new_account']
-        new_password = request.POST.get['new_password']
+        new_account = body.get('new_account')
+        new_password = body.get('new_password')
 
         # Update the password
         examiner.modify_examiner_info(new_account, new_password)
         examiner.save()
-
+        new_examiner_json = serialize('json', [examiner], ensure_ascii=False)
         response['status'] = 'success'
         response['message'] = 'Examiner info has been modified successfully.'
         response['error_num'] = 0
+        response['new_examiner'] = new_examiner_json
 
     except Exception as e:
         response['status'] = 'error'
@@ -330,6 +343,7 @@ def modify_examiner(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def grant_authority(request):
     """
@@ -338,7 +352,10 @@ def grant_authority(request):
     response = {}
     try:
         # Fetch the examiner using the examiner_id from URL parameters
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get['examiner_id'])
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        examiner_id = int(body.get('examiner_id'))
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=examiner_id)
         # Set authority
         examiner.grant()
         examiner.save()
@@ -355,6 +372,7 @@ def grant_authority(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def revoke_authority(request):
     """
@@ -363,7 +381,10 @@ def revoke_authority(request):
     response = {}
     try:
         # Fetch the examiner using the examiner_id from URL parameters
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get['examiner_id'])
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        examiner_id = int(body.get('examiner_id'))
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=examiner_id)
         # Revoke authority
         examiner.revoke()
         examiner.save()
@@ -380,6 +401,7 @@ def revoke_authority(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def delete_examiner(request):
     """
@@ -387,7 +409,10 @@ def delete_examiner(request):
     """
     response = {}
     try:
-        examiner = CreditCardExaminer.objects.get(credit_examiner_id=request.POST.get('examiner_id'))
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        examiner_id = int(body.get('examiner_id'))
+        examiner = CreditCardExaminer.objects.get(credit_examiner_id=examiner_id)
         examiner.delete()
         response['status'] = 'success'
         response['message'] = 'Examiner has been deleted successfully.'

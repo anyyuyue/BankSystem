@@ -61,7 +61,7 @@
     <!-- 删除审查员对话框 -->
     <el-dialog v-model="deleteExaminerVisible" title="删除信用卡审查员" width="30%" align-center>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-         <span>确定删除<span style="font-weight: bold;">{{ deleteExaminerId }}号信用卡审查员</span>吗？</span>
+         <span>确定删除<span style="font-weight: bold;">{{ this.deleteExaminerId }}号信用卡审查员</span>吗？</span>
       </div>
 
       <template #footer>
@@ -134,7 +134,7 @@ export default{
       Edit,
       Plus,
       Switch,
-      // add examiner(should by employee first)
+      // add examiner(should by employee_id first)
       newExaminerVisible: false,
       newExaminerEmployeeId: 1,
       // modify examiner
@@ -146,9 +146,9 @@ export default{
       },
       // delete examiner
       deleteExaminerVisible: false,
-      deleteExaminerId: 0,
+      deleteExaminerId: 1,
       // grant or revoke
-      changeAuthorityVisible: 0,
+      changeAuthorityVisible: false,
       authority_types: [
         {
           value: '授予权限',
@@ -169,34 +169,37 @@ export default{
       axios.post( "/api/add_examiner",
       {
         employee_id: this.newExaminerEmployeeId,
-      })
-          .then(response => {
-            // let status =  response.data.status
-              ElMessage.success("添加成功")
-              this.newExaminerVisible = false
-              this.QueryExaminers()
-          })
-          .catch(error => {
+      }).then(response => {
+            if(response.data.status === 'success') {
+              ElMessage.success("添加成功");
+              this.newExaminerVisible = false;
+              this.QueryExaminers();
+            }else{
+              ElMessage.error("添加失败"+ response.data.message);
+            }
+      }).catch(error => {
             console.error('Error fetching examiners:', error);
             ElMessage.error("添加失败" + error);
           });
     },
     ConfirmModifyExaminer() {
-      //发出POST请求
+      //发出
       axios.post( "/api/modify_examiner",
       {
-        employee_id: this.modifyInfo.examiner_id,
+        examiner_id: this.examiner_id,
         new_account: this.modifyInfo.new_account,
         new_password: this.modifyInfo.new_password,
-      })
-          .then(response => {
-            // let status =  response.data.status
-              ElMessage.success("修改成功")
-              this.newExaminerVisible = false
-              this.QueryExaminers()
+      }).then(response => {
+            if(response.data.status === 'success'){
+              ElMessage.success("修改成功");
+              this.newExaminerVisible = false;
+              this.QueryExaminers();
+            }else{
+              ElMessage.error("修改失败"+ response.data.message);
+            }
           })
           .catch(error => {
-            console.error('Error fetching examiners:', error);
+            console.error('Error modifying examiners:', error);
             ElMessage.error("修改失败" + error);
           });
     },
@@ -206,10 +209,13 @@ export default{
         examiner_id: this.deleteExaminerId,
       })
           .then(response => {
-            // let status =  response.data.status
-              ElMessage.success("删除成功");
-              this.newExaminerVisible = false;
+           if(response.data.status === 'success'){
+             ElMessage.success("删除成功");
               this.QueryExaminers();
+              this.newExaminerVisible = false;
+           }else{
+             ElMessage.error("删除失败"+ response.data.message);
+           }
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
@@ -223,9 +229,13 @@ export default{
       })
           .then(response => {
             // let status =  response.data.status
+            if(response.data.status === 'success'){
               ElMessage.success("权限变更成功");
               this.newExaminerVisible = false;
               this.QueryExaminers();
+            }else {
+              ElMessage.error("权限变更失败"+ response.data.message);
+            }
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
@@ -238,10 +248,13 @@ export default{
         examiner_id: this.toChangeAuthority,
       })
           .then(response => {
-            // let status =  response.data.status
+            if(response.data.status === 'success'){
               ElMessage.success("权限变更成功");
               this.newExaminerVisible = false;
               this.QueryExaminers();
+            }else{
+              ElMessage.error("权限变更失败"+ response.data.message);
+            }
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
@@ -268,7 +281,7 @@ export default{
 
   },
   mounted() { // 当页面被渲染时
-    this.QueryExaminers() // 查询借书证
+    this.QueryExaminers();
   }
 }
 </script>
