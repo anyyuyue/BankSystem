@@ -40,5 +40,3 @@ cd frontend
 npm install
 ```
 启动前端 `npm run dev`
-
-*但是现在还没有把前后端链接到一起*

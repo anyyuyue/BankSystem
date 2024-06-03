@@ -6,6 +6,7 @@ from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from .models import *
+from django.views.decorators.csrf import csrf_exempt
 
 
 # 信用卡操作部分---------------------------------------------------------------------------
@@ -30,24 +31,25 @@ def get_cards(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def add_new_card(request):
     """
     create a new card and return the card
     """
     response = {}
     try:
-        # Create a new credit card
-        online_user_id = request.GET['online_user_id']
+        # 解析 JSON 数据
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        online_user_id = body.get('online_user_id')
         card = CreditCard().new_card(online_user_id)
-        # Serialize the card object to JSON format
-        card_json = serialize('json', [card], ensure_ascii=False)
 
         # Prepare the response dictionary
         response['status'] = 'success'
         response['message'] = 'Cards added successfully.'
         response['error_num'] = 0
-        response['card'] = card_json
 
     except Exception as e:
         response['status'] = 'error'
@@ -485,18 +487,35 @@ def get_application_at(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def change_application_state(request):
     """
     Examiner change the state of a credit card application
     """
     response = {}
     try:
-        # Fetch the application using the apply_id from URL parameters
-        apply = CreditCardApplication.objects.get(apply_id=request.GET['apply_id'])
+        # 解析 JSON 数据
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        apply_id = body.get('apply_id')
+        # print(f"Received apply_id: {apply_id}")  # 调试输出
+
+        if not apply_id:
+            raise ValueError("apply_id is required")
+
+        # 确保 apply_id 转换为整数
+        apply_id = int(apply_id)
+        apply = CreditCardApplication.objects.get(apply_id=apply_id)
+
         # Get the result and examiner_id
-        apply_result = request.GET['apply_result']
-        examiner_id = request.GET['examiner_id']
+        apply_result = body.get('apply_result')
+        examiner_id = body.get('examiner_id')
+
+        if not apply_result or not examiner_id:
+            raise ValueError("apply_result and examiner_id are required")
+
         # Update the apply_status and apply_result
         apply.change_state(apply_result, examiner_id)
         apply.save()

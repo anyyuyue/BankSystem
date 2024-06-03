@@ -37,7 +37,7 @@ urlpatterns = [
     path('get_uncheck_applications', views.get_uncheck_applications),  # 审核员看
     # 显示所有的申请 http://127.0.0.1:8000/api/get_uncheck_applications
     path('change_application_state', views.change_application_state),
-    # 审核申请 http://127.0.0.1:8000/api/change_application_state?examiner_id=1&apply_id=1&apply_result=1
+    # 审核申请 http://127.0.0.1:8000/api/change_application_state?examiner_id=1&apply_id=2&apply_result=1
 
     path('add_examiner', views.add_examiner),
     # 添加信用卡审查员 http://127.0.0.1:8000/api/add_examiner?employee_id=1

@@ -52,37 +52,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-# 允许跨域访问的域名列表，*表示允许所有域名
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:8080',  # 示例：允许从本地开发服务器访问
-#     'http://localhost:5173',
-#     # 添加其他允许的域名...
-# ]
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = (
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-    'VIEW',
-)
-CORS_ALLOW_HEADERS = (
-    'XMLHttpRequest',
-    'X_FILENAME',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'Pragma',
-)
-
 ROOT_URLCONF = 'BankSystem.urls'
 
 TEMPLATES = [
@@ -159,3 +128,26 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = "*"
+
+
+# 允许跨域访问的域名列表，*表示允许所有域名
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:8080',  # 示例：允许从本地开发服务器访问
+#     'http://localhost:5173',
+#     # 添加其他允许的域名...
+# ]
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'VIEW',
+)

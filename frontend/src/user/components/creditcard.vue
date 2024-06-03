@@ -27,40 +27,34 @@
 
             <!-- 卡片操作 -->
             <div style="margin-top: 10px; display:flex">
-              <el-button type="freeze" @click="this.FreezeCredit = true" style="background-color: #87CEEB;">
+              <el-button @click="this.FreezeCreditVisible = true" style="background-color: #87CEEB;">
                 冻结
               </el-button>
-              <el-button type="report_loss" @click="this.ReportLoss = true" style="background-color: #87CEEB;" >
+              <el-button  @click="this.ReportLoss = true" style="background-color: #87CEEB;" >
                 挂失
               </el-button>
-              <el-button type="view_month_bill" @click="this.ViewBill = true" style="background-color: #87CEEB;">
+              <el-button  @click="this.ViewBill = true" style="background-color: #87CEEB;">
                 查看月账单
               </el-button>
             </div>
 
             <div style="margin-top: 3px; display:flex" >
-              <el-button type="repay_credit" @click="this.RepayCredit = true" style="background-color: #87CEEB;">
+              <el-button @click="this.RepayCredit = true" style="background-color: #87CEEB;">
                 还款
               </el-button>
-              <el-button type="pay_bill" @click="this.PayBill = true" style="background-color: #87CEEB;">
+              <el-button  @click="this.PayBill = true" style="background-color: #87CEEB;">
                 付款
               </el-button>
-              <el-button type="pay_bill" @click="this.UpdateLimit = true" style="background-color: #87CEEB; width: 95px;">
+              <el-button  @click="this.UpdateLimit = true" style="background-color: #87CEEB; width: 95px;">
                 更新额度
               </el-button>
             </div>
           </div>
         </div>
-
-        <el-button class="newCreditcardBox" @click="newCardVisible = true">
-          <el-icon style="height: 50px; width: 50px;">
-            <Plus style="height: 100%; width: 100%;" />
-          </el-icon>
-        </el-button>
       </div>
 
-        <!--冻结-->
-        <el-dialog v-model="FreezeCredit" title="冻结信用卡" width="30%" align-center>
+      <!--冻结-->
+      <el-dialog v-model="FreezeCreditVisible" title="冻结信用卡" width="30%" align-center>
             <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
                 信用卡ID：
                 <el-input v-model="newFreezeCredit.account_id" style="width: 12.5vw;" clearable />
@@ -71,7 +65,7 @@
             </div>
             <template #footer>
                 <span>
-                    <el-button @click="this.FreezeCredit = false">取消</el-button>
+                    <el-button @click="this.FreezeCreditVisible = false">取消</el-button>
                     <el-button type="primary" @click="ConfirmFreezeCredit"
                         :disabled="newFreezeCredit.password.length === 0">确定</el-button>
                 </span>
@@ -126,33 +120,32 @@
             </template>
         </el-dialog>
 
+      <!--还款-->
+      <el-dialog v-model="RepayCredit" title="还款服务" width="30%" align-center>
+          <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+              信用卡ID：
+              <el-input v-model="newRepayCredit.account_id" style="width: 12.5vw;" clearable />
+          </div>
+          <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+              还款金额：
+              <el-input v-model="newRepayCredit.amount" style="width: 12.5vw;" clearable />
+          </div>
+          <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+              密码：
+              <el-input v-model="newRepayCredit.password" style="width: 12.5vw;" clearable />
+          </div>
 
-        <!--还款-->
-        <el-dialog v-model="RepayCredit" title="还款服务" width="30%" align-center>
-            <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-                信用卡ID：
-                <el-input v-model="newRepayCredit.account_id" style="width: 12.5vw;" clearable />
-            </div>
-            <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-                还款金额：
-                <el-input v-model="newRepayCredit.amount" style="width: 12.5vw;" clearable />
-            </div>
-            <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-                密码：
-                <el-input v-model="newRepayCredit.password" style="width: 12.5vw;" clearable />
-            </div>
-            
-            <template #footer>
-                <span>
-                    <el-button @click="this.RepayCredit = false">取消</el-button>
-                    <el-button type="primary" @click="ConfirmRepayCredit"
-                        :disabled="newRepayCredit.amount <= 0 || newRepayCredit.password.length === 0">确定</el-button>
-                </span>
-            </template>
-        </el-dialog>
-        
-        <!--查看月账单-->
-        <el-dialog v-model="ViewBill" title="查看月账单" width="50%" align-center>
+          <template #footer>
+              <span>
+                  <el-button @click="this.RepayCredit = false">取消</el-button>
+                  <el-button type="primary" @click="ConfirmRepayCredit"
+                      :disabled="newRepayCredit.amount <= 0 || newRepayCredit.password.length === 0">确定</el-button>
+              </span>
+          </template>
+      </el-dialog>
+
+      <!--查看月账单-->
+      <el-dialog v-model="ViewBill" title="查看月账单" width="50%" align-center>
             <el-table :data="fitlerBills" height="600"
             :default-sort="{ prop: 'bill_record_id', order: 'ascending' }" :table-layout="'auto'"
             style="width: 100%; margin-left: 10px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
@@ -188,15 +181,14 @@
   </template>
 
 <script>
+  import axios from "axios";
+  import {ElMessage} from "element-plus";
+
   export default{
-    computed: {
-        fitlerBills() {
-            return this.bills
-        }
-    },
     data(){
       return{
-        FreezeCredit: false,
+        online_user_id: 1,
+        FreezeCreditVisible: false,
         ReportLoss: false,
         ViewBill: false,
         RepayCredit: false,
@@ -255,46 +247,41 @@
             is_frozen: false,
             is_lost: false,
           },
-          {
-            id: 2,
-            account_id: '10001',
-            balance: 10.2,
-            card_type: 'user',
-            due_date: '2045-4-1',
-            limit: 1000,
-            is_frozen: true,
-            is_lost: true,
-          },
-          {
-            id:3,
-            account_id: '10003',
-            balance: 11.0,
-            card_type: 'user',
-            due_date: '2025-3-1',
-            limit: 1000,
-            is_frozen: true,
-            is_lost: false,
-          },
-          {
-            id:4,
-            account_id: '10004',
-            balance: 11.0,
-            card_type: 'user',
-            due_date: '2025-3-1',
-            limit: 1000,
-            is_frozen: true,
-            is_lost: false,
-          },
         ],
       }
     },
     methods: {
-      ShowCards() {
-        axios.get("/api/show_cards")
-          .then(response => {
-            this.card
-          })
+      async ShowCards() {
+        try {
+        const response = await axios.get('/api/show_month_bill', {
+          params: {
+            account_in_id: this.toQueryInID,
+            year: this.toQueryYear,
+            month: this.toQueryMonth,
+          }
+        });
+        this.creditcards = []
+        const records = response.data.list; // 获取响应负载
+        records.forEach(item => {
+          this.creditcards.push({
+            id: item.pk,
+            account_id: item.fields.online_user,
+            balance: item.fields.balance,
+            card_type: item.fields.card_type,
+            due_date: item.fields.due_date,
+            limit: item.fields.credit_limit,
+            is_frozen: item.fields.is_frozen,
+            is_lost: item.fields.is_lost,
+          });
+        });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        ElMessage.error('数据获取失败，请稍后重试！');
       }
+      }
+      },
+    mounted() {
+      this.ShowCards();
     }
   }
   </script>
