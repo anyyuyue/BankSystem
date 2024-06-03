@@ -7,85 +7,147 @@
     </div>
 
     <!-- 记录 -->
-    <el-table :data="fitlerTableData" height="600"
+    <el-table :data="tableData" height="600"
         :default-sort="{ prop: 'apply_id', order: 'ascending' }" :table-layout="'auto'"
         style="width: 100%; margin-left: 50px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
         <el-table-column prop="apply_id" label="申请序号" sortable/>
+        <el-table-column prop="apply_date" label="申请时间" />
         <el-table-column prop="account_id" label="申请人ID" />
         <el-table-column prop="asset" label="申请人信誉" />
 
-        <el-table-column label="操作">
-            <!--<template #default="scope">-->
-                <el-button link type="primary" size="small" @click="this.checkAsset = true">审核</el-button><!--disabled="scope.row.asset !== 'good' && scope.row.asset!='very good'"-->
-            <!--</template>-->
+        <el-table-column label="具体操作">
+          <el-button link type="primary" size="small" @click="this.checkAssetVisible=true,
+            this.checkInfo.apply_id=tableData.row.apply_id">审核</el-button>
+          <el-button link type="primary" size="small" @click="this.newCardVisible=true,
+            this.newCardUserId=tableData.row.account_id">开户</el-button>
         </el-table-column>
-    </el-table> 
+    </el-table>
 
-        <!--审核-->
-        <el-dialog v-model="checkAsset" title="审核" width="30%" align-center>
-            <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-                审核员ID：
-                <el-input v-model="ApplyResult.examiner_id" style="width: 12.5vw;" clearable />
-            </div>
-            <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-                信誉：
-                <el-input v-model="ApplyResult.asset" style="width: 12.5vw;" clearable />
-            </div>
-            
-            <template #footer>
-                <span>
-                    <el-button @click="this.checkAsset = false">取消</el-button>
-                    <el-button type="primary" @click="NotPass"
-                        :disabled="ApplyResult.examiner_id.length === 0 || ApplyResult.asset==='good' || ApplyResult.asset==='very good'">不通过</el-button>
-                    <el-button type="primary" @click="Pass"
-                        :disabled="ApplyResult.examiner_id.length === 0 || (ApplyResult.asset!='good' && ApplyResult.asset!='very good')">通过</el-button>
-                </span>
-            </template>
-        </el-dialog>
+    <!-- 审核对话框 -->
+    <el-dialog v-model="checkAssetVisible" title="审核" width="30%" align-center>
+      <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          审核员ID：
+          <el-input v-model="checkInfo.examiner_id" style="width: 12.5vw;" clearable />
+      </div>
+      <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          申请结果：
+        <el-select v-model="checkInfo.apply_result" style="width: 12.5vw;">
+          <el-option v-for="type in result_types" :key="type.value" :label="type.label" :value="type.value" />
+        </el-select>
+      </div>
+
+      <template #footer>
+        <span>
+          <el-button @click="this.checkAssetVisible = false">取消</el-button>
+          <el-button type="primary" @click="ConfirmChangeState">确认</el-button>
+        </span>
+      </template>
+      </el-dialog>
+
+    <!-- 开户对话框 -->
+    <el-dialog v-model="newCardVisible" title="开户" width="30%" align-center>
+      确认要开户吗？
+      <template #footer>
+        <span>
+          <el-button @click="this.newCardVisible = false">取消</el-button>
+          <el-button type="primary" @click="ConfirmNewCard">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
     </el-scrollbar>
 </template>
 
 <script>
+import axios from "axios";
+import {ElMessage} from "element-plus";
+
 export default {
-    data() {
-        return {
-            checkAsset : false,
-            ApplyResult: {
-                examiner_id: '',
-                asset: '',
-            },
-            tableData: [
-                {
-                    apply_id:'123',
-                    account_id: '123',
-                    asset: 'good',
-                },
-                {
-                    apply_id: '122',
-                    account_id: '1234',
-                    asset: 'middling',
-                },
-                {
-                    apply_id: '111',
-                    account_id: '12',
-                    asset: 'good',
-                }
-            ],
-        }
+  data() {
+    return {
+      tableData: [
+        {
+          apply_id:'123',
+          account_id: '123', // online_user
+          apply_date: "2024 10-12 11:12",
+          asset: "good",
+        },
+      ],
+      // 开户
+      newCardVisible: false,
+      newCardUserId: 1,
+      // 审核
+      checkAssetVisible : false,
+      checkInfo: {
+        examiner_id: 1,
+        apply_id: 1,
+        apply_result: true,
+      },
+      result_types: [
+        {
+          value: true,
+          label: '通过',
+        },
+        {
+          value: false,
+          label: '不通过',
+        },
+      ]
+    }
+  },
+  methods: {
+    QueryApplications() {
+      axios.get("/api/get_uncheck_examiner")
+          .then(response => {
+            this.tableData = [];
+            let tableData = response.data.list;
+            tableData.forEach(item => {
+              let application = {
+                apply_id: item.pk,
+                apply_date: item.fields.apply_date,
+                account_id: item.fields.online_user,
+                assert: "unset", // 这里假设没有从后端获取 assert
+              };
+              this.tableData.push(application);
+            });
+          })
     },
-    computed: {
-        fitlerTableData() { // 搜索规则
-            return this.tableData
-            //return this.tableData.filter(
-            //    (tuple) =>
-            //        (this.toSearch == '') || // 搜索框为空，即不搜索
-            //        tuple.bookID == this.toSearch || // 图书号与搜索要求一致
-            //        tuple.borrowTime.toString().includes(this.toSearch) || // 借出时间包含搜索要求
-            //       tuple.returnTime.toString().includes(this.toSearch) // 归还时间包含搜索要求
-            //)
-        }
+    ConfirmChangeState() {
+      axios.post("/api/change_application_state",
+      {
+        apply_id: this.checkInfo.apply_id,
+        examiner_id: this.checkInfo.examiner_id,
+        apply_result: this.checkInfo.apply_result,
+      })
+          .then(response => {
+              ElMessage.success("修改成功")
+              this.checkAssetVisible = false
+              this.QueryApplications()
+          })
+          .catch(error => {
+            console.error('Error fetching examiners:', error);
+            ElMessage.error("修改失败" + error);
+          });
     },
+    ConfirmNewCard() {
+      axios.post("/api/add_new_card",
+      {
+        online_user_id: this.newCardUserId,
+      })
+          .then(response => {
+              ElMessage.success("修改成功")
+              this.checkAssetVisible = false
+              this.QueryApplications()
+          })
+          .catch(error => {
+            console.error('Error fetching examiners:', error);
+            ElMessage.error("修改失败" + error);
+          });
+    },
+  },
+  mounted() {
+    this.QueryApplications()
+  },
 }
 </script>
 

@@ -399,13 +399,33 @@ def delete_examiner(request):
 
 # 申请管理部分-----------------------------------------------------------------------------------------
 @require_http_methods(["GET"])
-def get_applications(request):
+def get_check_applications(request):
     """
     show all applications, return all applications
     """
     response = {}
     try:
-        applications = CreditCardApplication.objects.filter()
+        applications = CreditCardApplication.objects.filter(apply_status=1)
+        response['status'] = 'success'
+        response['message'] = 'Applications show successfully.'
+        response['error_num'] = 0
+        response['list'] = json.loads(serializers.serialize('json', applications))
+    except Exception as e:
+        response['status'] = 'error'
+        response['message'] = str(e)
+        response['error_num'] = 1
+
+    return JsonResponse(response)
+
+
+@require_http_methods(["GET"])
+def get_uncheck_applications(request):
+    """
+    show all applications, return all applications
+    """
+    response = {}
+    try:
+        applications = CreditCardApplication.objects.filter(apply_status=0)
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
         response['error_num'] = 0
