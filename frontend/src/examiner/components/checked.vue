@@ -15,13 +15,14 @@
         <el-table-column prop="account_id" label="申请人ID" />
         <el-table-column prop="asset" label="申请人信誉" />
         <el-table-column prop="examiner_id" label="审核员ID" /> 
-        <el-table-column prop="apply_result" label="申请结果" />
+        <el-table-column prop="apply_result" label="申请结果">
+          <template v-slot ="scope">{{ scope.row.apply_result ? '通过' : '不通过' }}</template>
+        </el-table-column>
         <el-table-column label="具体操作">
           <template v-slot="scope">
-            <el-button link type="primary" size="small" @click="this.newCardVisible=true,
+            <el-button link type="primary"  :disabled="this.isConfirmed" @click="this.newCardVisible=true,
               this.newCardUserId=scope.row.account_id">开户</el-button>
           </template>
-
         </el-table-column>
     </el-table>
 
@@ -50,16 +51,17 @@ export default {
       tableData: [
         {
           apply_id:1,
-          apply_date: "2024-03-04 21:49:00",
-          apply_result: true,
+          apply_date: "",
+          apply_result: '',
           account_id: 1, // online_user_id
-          asset: 'good',
+          asset: '',
           examiner_id: 1,
         },
       ],
       // 开户
       newCardVisible: false,
       newCardUserId: 1,
+      isConfirmed: false,
     }
   },
   methods: {
@@ -70,13 +72,13 @@ export default {
             let tableData = response.data.list;
             tableData.forEach(item => {
               let application = {
-                apply_id: item.pk,
-                apply_date: item.fields.apply_date,
-                apply_result: item.fields.apply_result,
-                account_id: item.fields.online_user,
+                apply_id: item.apply_id,
+                apply_date: item.apply_date,
+                apply_result: item.apply_result,
+                account_id: item.online_user_id,
                 assert: "unset",
                 // 还没有从后端获取 assert：申请人的信誉情况，需要贷款模块提供
-                examiner_id: item.fields.creditCardExaminer,
+                examiner_id: item.examiner_id,
               };
               this.tableData.push(application);
             });
@@ -88,13 +90,14 @@ export default {
         online_user_id: this.newCardUserId,
       })
           .then(response => {
-              ElMessage.success("修改成功")
+              ElMessage.success("开户成功")
               this.newCardVisible = false
+              this.isConfirmed =true
               this.QueryApplications()
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
-            ElMessage.error("修改失败" + error);
+            ElMessage.error("开户失败" + error);
           });
     },
   },

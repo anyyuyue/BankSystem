@@ -10,7 +10,6 @@ from .models import *
 from django.views.decorators.csrf import csrf_exempt
 
 
-
 # 信用卡操作部分---------------------------------------------------------------------------
 @require_http_methods(["GET"])
 def get_cards(request):
@@ -329,7 +328,6 @@ def pay_to(request):
 #     return JsonResponse(response)
 
 
-
 @require_http_methods(["GET"])
 def show_month_bill(request):
     response = {}
@@ -589,11 +587,22 @@ def get_check_applications(request):
     """
     response = {}
     try:
+        tz = pytz.timezone('Asia/Shanghai')
         applications = CreditCardApplication.objects.filter(apply_status=1)
+        formatted_applications = []
+        for application in applications:
+            formatted_applications.append({
+                'apply_id': application.apply_id,
+                'apply_status': application.apply_status,
+                'apply_result': application.apply_result,
+                'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                'examiner_id': application.creditCardExaminer,
+                'online_user_id': application.online_user_id,
+            })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
         response['error_num'] = 0
-        response['list'] = json.loads(serializers.serialize('json', applications))
+        response['list'] = formatted_applications
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
@@ -609,11 +618,22 @@ def get_uncheck_applications(request):
     """
     response = {}
     try:
+        tz = pytz.timezone('Asia/Shanghai')
         applications = CreditCardApplication.objects.filter(apply_status=0)
+        formatted_applications = []
+        for application in applications:
+            formatted_applications.append({
+                'apply_id': application.apply_id,
+                'apply_status': application.apply_status,
+                'apply_result': application.apply_result,
+                'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                'examiner_id': application.creditCardExaminer,
+                'online_user_id': application.online_user_id,
+            })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
         response['error_num'] = 0
-        response['list'] = json.loads(serializers.serialize('json', applications))
+        response['list'] = formatted_applications
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)

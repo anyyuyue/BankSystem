@@ -3,12 +3,12 @@
 
     <!-- 标题 -->
     <div style="margin-top: 20px; margin-left: 40px; font-size: 2em; font-weight: bold;">
-        未审核的信用卡申请表单
+        未审核的信用卡申请单
     </div>
 
     <!-- 记录 -->
-    <el-table :data="tableData" height="600"
-        :default-sort="{ prop: 'apply_id', order: 'ascending' }" :table-layout="'auto'" stripe
+    <el-table :data="tableData" height="600" stripe
+        :default-sort="{ prop: 'apply_id', order: 'ascending' }" :table-layout="'auto'"
         style="width: 100%; margin-left: 50px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
         <el-table-column prop="apply_id" label="申请序号" sortable width="150"/>
         <el-table-column prop="apply_date" label="申请时间" width="220"/>
@@ -17,7 +17,7 @@
 
         <el-table-column label="具体操作">
           <template v-slot="scope">
-            <el-button link type="primary" size="small" @click="this.checkInfo.apply_id = scope.row.apply_id,
+            <el-button link type="primary"  @click="this.checkInfo.apply_id = scope.row.apply_id,
               this.checkAssetVisible = true;">审核</el-button>
           </template>
 
@@ -66,14 +66,19 @@ export default {
       // 审核
       checkAssetVisible : false,
       checkInfo: {
-        examiner_id: 0,
-        apply_id: 0,
+        examiner_id: '',
+        apply_id: '',
         apply_result: true,
       },
       result_types: [
         {
           value: true,
-          label: '',
+          label: '通过',
+        },
+        {
+          value:false,
+          label: '不通过',
+
         }
       ]
     }
@@ -86,9 +91,9 @@ export default {
             let tableData = response.data.list;
             tableData.forEach(item => {
               let application = {
-                apply_id: item.pk,
-                apply_date: item.fields.apply_date,
-                account_id: item.fields.online_user,
+                apply_id: item.apply_id,
+                apply_date: item.apply_date,
+                account_id: item.online_user_id,
                 assert: "unset", // 这里假设没有从后端获取 assert
               };
               this.tableData.push(application);
