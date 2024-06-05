@@ -18,12 +18,6 @@
             <span>信用卡审核员管理</span>
           </el-menu-item>
 
-          <!--just for test-->
-          <el-menu-item index="/manager/transfer_record">
-            <el-icon> <Avatar /> </el-icon>
-            <span>交易记录</span>
-          </el-menu-item>
-
           <div style="height: 30px"></div>
           <a href="/cashier" style="margin-left: 40px;">
             <el-button type="danger">

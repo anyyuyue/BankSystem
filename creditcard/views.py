@@ -1,13 +1,14 @@
 import json
-from datetime import datetime
+import pytz
 from django.db.models import Sum
 from django.core import serializers
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
+from django.utils.timezone import make_aware
 from django.views.decorators.http import require_http_methods
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
-from itertools import chain
+
 
 
 # 信用卡操作部分---------------------------------------------------------------------------
@@ -270,33 +271,121 @@ def pay_to(request):
     return JsonResponse(response)
 
 
+# @require_http_methods(["GET"])
+# def show_month_bill(request):
+#     response = {}
+#     try:
+#         year = request.GET['year']
+#         month = request.GET['month']
+#         if not year or not month:
+#             raise ValueError("请输入年月")  # Year and month parameters are required.
+#
+#         # Ensuring the account_id is provided
+#         account_id = request.GET.get('account_id')
+#         if not account_id:
+#             raise ValueError("请输入要查询的账号")  # Account ID is required.
+#
+#         # Convert dates to the local timezone
+#         local_tz = timezone.get_default_timezone()
+#
+#         in_bill = Transaction.objects.filter(
+#             account_in_id=account_id,
+#             transfer_date__year=year,
+#             transfer_date__month=month
+#         ).annotate(
+#             local_date=ExpressionWrapper(F('transfer_date'), output_field=DateTimeField())
+#         ).filter(
+#             local_date__year=year,
+#             local_date__month=month
+#         )
+#
+#         out_bill = Transaction.objects.filter(
+#             account_out_id=account_id,
+#             transfer_date__year=year,
+#             transfer_date__month=month
+#         ).annotate(
+#             local_date=ExpressionWrapper(F('transfer_date'), output_field=DateTimeField())
+#         ).filter(
+#             local_date__year=year,
+#             local_date__month=month
+#         )
+#
+#         in_total_amount = in_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
+#         out_total_amount = out_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
+#
+#         bill = list(chain(in_bill, out_bill))
+#         response['total_amount'] = in_total_amount - out_total_amount
+#         response['in_amount'] = in_total_amount
+#         response['out_amount'] = out_total_amount
+#         response['list'] = json.loads(serializers.serialize('json', bill))
+#         response['status'] = 'success'
+#         response['message'] = 'All bills have been saved.'
+#         response['error_num'] = 0
+#     except Exception as e:
+#         response['status'] = 'error'
+#         response['message'] = str(e)
+#         response['error_num'] = 1
+#
+#     return JsonResponse(response)
+
+
+
 @require_http_methods(["GET"])
 def show_month_bill(request):
-    """
-    'user' get the bill of 'year''month'
-    """
     response = {}
     try:
-        year = request.GET['year']
-        month = request.GET['month']
+        year = request.GET.get('year')
+        month = request.GET.get('month')
+        account_id = request.GET.get('account_id')
         if not year or not month:
-            raise ValueError("Year and month parameters are required.")
+            raise ValueError("请输入年月")  # Year and month parameters are required.
+
+        # Define your timezone (Asia/Shanghai)
+        tz = pytz.timezone('Asia/Shanghai')
+
+        # Create timezone-aware start and end dates
+        start_date = datetime(int(year), int(month), 1)
+        if month == '12':
+            end_date = datetime(int(year) + 1, 1, 1)
+        else:
+            end_date = datetime(int(year), int(month) + 1, 1)
+
+        start_date = make_aware(start_date, timezone=tz)
+        end_date = make_aware(end_date, timezone=tz)
+
         in_bill = Transaction.objects.filter(
-            account_in_id=request.GET['account_id'],
-            transfer_date__year=year,
-            transfer_date__month=month
+            account_in_id=account_id,
+            transfer_date__gte=start_date,
+            transfer_date__lt=end_date
         )
         out_bill = Transaction.objects.filter(
-            account_out_id=request.GET['account_id'],
-            transfer_date__year=year,
-            transfer_date__month=month
+            account_out_id=account_id,
+            transfer_date__gte=start_date,
+            transfer_date__lt=end_date
         )
+
+        # Calculate total in and out amounts
         in_total_amount = in_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
         out_total_amount = out_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
 
-        bill = list(chain(in_bill, out_bill))
+        # Prepare bills list for custom formatting
+        bills = list(in_bill) + list(out_bill)
+        formatted_bills = []
+        for bill in bills:
+            formatted_bills.append({
+                'transfer_record_id': bill.transfer_record_id,
+                'account_in_id': bill.account_in_id,
+                'account_out_id': bill.account_out_id,
+                'transfer_amount': bill.transfer_amount,
+                'transfer_date': bill.transfer_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+            })
+
+        # Response setup
         response['total_amount'] = in_total_amount - out_total_amount
-        response['list'] = json.loads(serializers.serialize('json', bill))
+        response['in_amount'] = in_total_amount
+        response['out_amount'] = out_total_amount
+        response['list'] = formatted_bills
+        # response['list'] = json.loads(serializers.serialize('json', formatted_bills))
         response['status'] = 'success'
         response['message'] = 'All bills have been saved.'
         response['error_num'] = 0

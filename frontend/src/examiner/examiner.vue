@@ -8,13 +8,13 @@
           width: 100%; height: 10vh; display: flex; align-items: center; justify-content: center;">
             信用卡审核员
           </div>
-          <el-menu-item index="/examiner/checked">
+          <el-menu-item index="/credit_examiner/checked">
             <el-icon>
               <Avatar />
             </el-icon>
             <span>已审核</span>
           </el-menu-item>
-          <el-menu-item index="/examiner/unchecked">
+          <el-menu-item index="/credit_examiner/unchecked">
             <el-icon>
               <Avatar />
             </el-icon>

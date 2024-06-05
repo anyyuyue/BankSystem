@@ -26,11 +26,11 @@
             </el-icon>
             <span>账户转账</span>
           </el-menu-item>
-          <el-menu-item index="/cashier/query">
+          <el-menu-item index="/cashier/transfer_record">
             <el-icon>
               <Avatar />
             </el-icon>
-            <span>查询记录</span>
+            <span>查询交易记录</span>
           </el-menu-item>
           <el-sub-menu>
             <template #title>

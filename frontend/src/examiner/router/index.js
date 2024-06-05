@@ -7,14 +7,14 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            redirect: '/examiner'
+            redirect: '/credit_examiner'
         },
         {
-            path: '/examiner/checked',
+            path: '/credit_examiner/checked',
             component: Checked,
         },
         {
-            path: '/examiner/unchecked',
+            path: '/credit_examiner/unchecked',
             component: Unchecked,
         },
     ],

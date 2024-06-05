@@ -169,6 +169,7 @@ export default{
       axios.post( "/api/add_examiner",
       {
         employee_id: this.newExaminerEmployeeId,
+        // 需要登陆时职员的ID
       }).then(response => {
             if(response.data.status === 'success') {
               ElMessage.success("添加成功");

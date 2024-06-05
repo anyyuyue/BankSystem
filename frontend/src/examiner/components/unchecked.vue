@@ -3,15 +3,15 @@
 
     <!-- 标题 -->
     <div style="margin-top: 20px; margin-left: 40px; font-size: 2em; font-weight: bold;">
-        未审核
+        未审核的信用卡申请表单
     </div>
 
     <!-- 记录 -->
     <el-table :data="tableData" height="600"
-        :default-sort="{ prop: 'apply_id', order: 'ascending' }" :table-layout="'auto'"
+        :default-sort="{ prop: 'apply_id', order: 'ascending' }" :table-layout="'auto'" stripe
         style="width: 100%; margin-left: 50px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
-        <el-table-column prop="apply_id" label="申请序号" sortable/>
-        <el-table-column prop="apply_date" label="申请时间" />
+        <el-table-column prop="apply_id" label="申请序号" sortable width="150"/>
+        <el-table-column prop="apply_date" label="申请时间" width="220"/>
         <el-table-column prop="account_id" label="申请人ID" />
         <el-table-column prop="asset" label="申请人信誉" />
 
@@ -57,28 +57,24 @@ export default {
     return {
       tableData: [
         {
-          apply_id:'123',
-          account_id: '123', // online_user
-          apply_date: "2024 10-12 11:12",
-          asset: "good",
+          apply_id:'',
+          account_id: '', // online_user
+          apply_date: "",
+          asset: "",
         },
       ],
       // 审核
       checkAssetVisible : false,
       checkInfo: {
-        examiner_id: 2,
-        apply_id: 1,
+        examiner_id: 0,
+        apply_id: 0,
         apply_result: true,
       },
       result_types: [
         {
           value: true,
-          label: '通过',
-        },
-        {
-          value: false,
-          label: '不通过',
-        },
+          label: '',
+        }
       ]
     }
   },

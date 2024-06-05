@@ -3,16 +3,15 @@
 
     <!-- 标题 -->
     <div style="margin-top: 20px; margin-left: 40px; font-size: 2em; font-weight: bold;">
-        已审核
+        已审核的信用卡申请单
     </div>
 
     <!-- 记录 --> 
-    <el-table :data="tableData" height="600"
+    <el-table :data="tableData" height="600" stripe
         :default-sort="{ prop: 'apply_id', order: 'ascending' }" :table-layout="'auto'"
         style="width: 100%; margin-left: 50px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
-
-        <el-table-column prop="apply_id" label="申请序号" sortable/>
-        <el-table-column prop="apply_date" label="申请时间" sortable/>
+        <el-table-column prop="apply_id" label="申请序号" sortable width="150"/>
+        <el-table-column prop="apply_date" label="申请时间" sortable width="220"/>
         <el-table-column prop="account_id" label="申请人ID" />
         <el-table-column prop="asset" label="申请人信誉" />
         <el-table-column prop="examiner_id" label="审核员ID" /> 
@@ -75,7 +74,8 @@ export default {
                 apply_date: item.fields.apply_date,
                 apply_result: item.fields.apply_result,
                 account_id: item.fields.online_user,
-                assert: "unset", // 这里假设没有从后端获取 assert
+                assert: "unset",
+                // 还没有从后端获取 assert：申请人的信誉情况，需要贷款模块提供
                 examiner_id: item.fields.creditCardExaminer,
               };
               this.tableData.push(application);
