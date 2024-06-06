@@ -21,11 +21,24 @@ def get_cards(request):
         online_user_id = request.GET.get('online_user_id')
         if not online_user_id:
             raise ValueError("online_user_id is required")
+        tz = pytz.timezone('Asia/Shanghai')
         cards = CreditCard.objects.filter(online_user=Online_user.objects.get(person_id=online_user_id))
+        formatted_cards = []
+        for card in cards:
+            formatted_cards.append({
+                'account_id': card.account_id,
+                'online_user_id': card.online_user_id,
+                'balance': card.balance,
+                'card_type': card.card_type,
+                'credit_limit': card.credit_limit,
+                'open_date': card.open_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                'is_lost': card.is_lost,
+                'is_frozen': card.is_frozen,
+            })
         response['status'] = 'success'
         response['message'] = 'Cards show successfully.'
         response['error_num'] = 0
-        response['list'] = json.loads(serializers.serialize('json', cards))
+        response['list'] = formatted_cards
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
@@ -147,6 +160,7 @@ def update_limit(request):
             raise ValueError("password is required")
         card = CreditCard.objects.get(account_id=account_id)
         card.update_credit_limit(password, amount)
+
         response['status'] = 'success'
         response['message'] = 'Limit has been updated.'
         response['card'] = serialize('json', [card], ensure_ascii=False)
@@ -187,16 +201,16 @@ def repay(request):
     try:
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
-        account_id = body.get('account_id')
-        pay_account = body.get('pay_account')
-        pay_password = body.get('pay_password')
-        amount = body.get('amount')
+        account_id = body.get('account_id')  # 要还款的信用卡账户
+        pay_account = body.get('pay_account')  # 支付的信用卡账户
+        pay_password = body.get('pay_password')  # 支付的信用卡账户密码
+        amount = float(body.get('amount'))
         print(account_id, pay_account, pay_password, amount)
 
+        card = CreditCard.objects.get(account_id=account_id)
         pay_card = CreditCard.objects.get(account_id=pay_account)
-        repay_card = CreditCard.objects.get(account_id=account_id)
-        pay_card.transfer_out(amount, pay_password)
-        repay_card.transfer_in(amount)
+
+        card.repay(pay_card, pay_password, amount)
 
         response['status'] = 'success'
         response['message'] = 'Payment has been completed.'
@@ -256,6 +270,8 @@ def pay_to(request):
         # update the balance of payer and receiver
         in_card = CreditCard.objects.get(account_id=account_in_id)
         out_card = CreditCard.objects.get(account_id=account_out_id)
+        if in_card == out_card:
+            raise ValueError("收款方和付款方不能相同")
         in_card.transfer_in(amount)
         out_card.transfer_out(amount, password)
 

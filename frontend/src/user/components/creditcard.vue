@@ -19,7 +19,7 @@
 
             <!-- 卡片内容 -->
             <div style="margin-left: 10px; text-align: start; font-size: 16px;">
-              <p style="padding: 2.5px;"><span style="font-weight: bold">未还金额：</span>{{creditcard.balance}}</p>
+              <p style="padding: 2.5px;"><span style="font-weight: bold">余额：</span>{{creditcard.balance}}</p>
               <p style="padding: 2.5px;"><span style="font-weight: bold">信用额度：</span>{{creditcard.limit}}</p>
               <p style="padding: 2.5px;"><span style="font-weight: bold">开户日期：</span>{{creditcard.due_date}}</p>
               <p style="padding: 2.5px;">
@@ -284,7 +284,7 @@ export default{
       creditcards: [
         {
           account_id: 1,
-          due_date: '2025-10-1',
+          open_date: '',
           limit: 1000,
           balance: 106.3,
           is_frozen: false,
@@ -391,14 +391,14 @@ export default{
             let tableData = response.data.list;
             tableData.forEach(item => {
               let card = {
-                account_id: item.pk,
-                online_user_id: item.fields.online_user,
-                balance: item.fields.balance,
-                card_type: item.fields.card_type,
-                due_date: item.fields.due_date,
-                limit: item.fields.credit_limit,
-                is_frozen: item.fields.is_frozen,
-                is_lost: item.fields.is_lost,
+                account_id: item.account_id,
+                online_user_id: item.online_user_id,
+                balance: item.balance,
+                card_type: item.card_type,
+                due_date: item.due_date,
+                limit: item.credit_limit,
+                is_frozen: item.is_frozen,
+                is_lost: item.is_lost,
               };
               this.creditcards.push(card);
             });
@@ -406,7 +406,7 @@ export default{
           .catch(error => {
                 console.error('Error fetching examiners:', error);
                 ElMessage.error("数据获取失败，请稍后重试！" + error);
-              });
+          });
     },
     ConfirmFreezeCredit() {
       console.log("freeze:" + this.newFreezeCredit.account_id)
