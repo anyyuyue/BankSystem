@@ -449,7 +449,7 @@ export default{
                 online_user_id: item.online_user_id,
                 balance: item.balance,
                 card_type: item.card_type,
-                due_date: item.due_date,
+                open_date: item.open_date,
                 limit: item.credit_limit,
                 is_frozen: item.is_frozen,
                 is_lost: item.is_lost,
@@ -480,7 +480,7 @@ export default{
           })
           .catch(error => {
             console.error('Error ConfirmChangeState:', error);
-            ElMessage.error("冻结失败" + error);
+            ElMessage.error("冻结失败：" + error);
           });
     },
     ConfirmReportLoss() {
@@ -500,7 +500,7 @@ export default{
           })
           .catch(error => {
             console.error('Error ConfirmChangeState:', error);
-            ElMessage.error("挂失失败" + error);
+            ElMessage.error("挂失失败：" + error);
           });
     },
     ConfirmUpdateLimit() {
@@ -522,7 +522,7 @@ export default{
           })
           .catch(error => {
             console.error('Error ConfirmChangeState:', error);
-            ElMessage.error("更新失败" + error);
+            ElMessage.error("更新失败：" + error);
           });
     },
     ConfirmPayBill() {
@@ -544,7 +544,7 @@ export default{
           })
           .catch(error => {
             console.error('Error ConfirmChangeState:', error);
-            ElMessage.error("支付失败" + error);
+            ElMessage.error("支付失败：" + error);
           });
     },
     ConfirmRepayCredit() {
@@ -566,7 +566,7 @@ export default{
           })
           .catch(error => {
             console.error('Error ConfirmChangeState:', error);
-            ElMessage.error("还款失败" + error);
+            ElMessage.error("还款失败：" + error);
           });
     },
     ConfirmQueryBill() {
@@ -602,7 +602,7 @@ export default{
             }
           })
           .catch(error => {
-            ElMessage.error("查询失败" + error);
+            ElMessage.error("查询失败：" + error);
           });
     },
     ConfirmApply() {
@@ -621,7 +621,7 @@ export default{
           })
           .catch(error => {
             // console.log(this.online_user_id)
-            ElMessage.error("申请提交失败" + error);
+            ElMessage.error("申请提交失败：" + error);
           });
     },
     ConfirmUpdatePassword() {
@@ -640,7 +640,7 @@ export default{
             }
           })
           .catch(error => {
-            ElMessage.error("修改失败" + error);
+            ElMessage.error("修改失败：" + error);
           });
     },
     ConfirmCancel() {
@@ -658,7 +658,7 @@ export default{
             }
           })
           .catch(error => {
-            ElMessage.error("取消失败" + error);
+            ElMessage.error("取消失败：" + error);
           });
     },
     ConfirmShowApplyList() {
@@ -691,7 +691,7 @@ export default{
             }
           })
           .catch(error => {
-            ElMessage.error("查询失败" + error);
+            ElMessage.error("查询失败：" + error);
           });
     },
   },

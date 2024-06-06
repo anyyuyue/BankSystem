@@ -176,7 +176,7 @@ export default{
               this.newExaminerVisible = false;
               this.QueryExaminers();
             }else{
-              ElMessage.error("添加失败"+ response.data.message);
+              ElMessage.error("添加失败："+ response.data.message);
             }
       }).catch(error => {
             console.error('Error fetching examiners:', error);
@@ -196,12 +196,12 @@ export default{
               this.modifyExaminerVisible = false;
               this.QueryExaminers();
             }else{
-              ElMessage.error("修改失败"+ response.data.message);
+              ElMessage.error("修改失败："+ response.data.message);
             }
           })
           .catch(error => {
             console.error('Error modifying examiners:', error);
-            ElMessage.error("修改失败" + error);
+            ElMessage.error("修改失败：" + error);
           });
     },
     ConfirmDeleteExaminer() {
@@ -215,12 +215,12 @@ export default{
               this.QueryExaminers();
               this.deleteExaminerVisible = false;
            }else{
-             ElMessage.error("删除失败"+ response.data.message);
+             ElMessage.error("删除失败："+ response.data.message);
            }
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
-            ElMessage.error("删除失败" + error);
+            ElMessage.error("删除失败：" + error);
           });
     },
     ConfirmGrant() {
@@ -235,12 +235,12 @@ export default{
               this.changeAuthorityVisible = false;
               this.QueryExaminers();
             }else {
-              ElMessage.error("权限变更失败"+ response.data.message);
+              ElMessage.error("权限变更失败："+ response.data.message);
             }
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
-            ElMessage.error("权限变更失败" + error);
+            ElMessage.error("权限变更失败：" + error);
           });
     },
     ConfirmRevoke() {
@@ -254,12 +254,12 @@ export default{
               this.changeAuthorityVisible = false;
               this.QueryExaminers();
             }else{
-              ElMessage.error("权限变更失败"+ response.data.message);
+              ElMessage.error("权限变更失败："+ response.data.message);
             }
           })
           .catch(error => {
             console.error('Error fetching examiners:', error);
-            ElMessage.error("权限变更失败" + error);
+            ElMessage.error("权限变更失败：" + error);
           });
     },
     QueryExaminers() {

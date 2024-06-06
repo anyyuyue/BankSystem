@@ -24,7 +24,7 @@ class CreditCardExaminer(models.Model):
         try:
             employee = Employee.objects.get(employee_id=employee_id)
             if CreditCardExaminer.objects.filter(employee=employee).exists():
-                raise ValueError("This employee is already a creditcard examiner.")
+                raise ValueError("该员工已经是信用卡审查员")
 
             # create a new CreditCardExaminer
             new_examiner = CreditCardExaminer(
@@ -37,31 +37,31 @@ class CreditCardExaminer(models.Model):
             return new_examiner
 
         except ObjectDoesNotExist:
-            raise ValueError("No such employee exists.")
+            raise ValueError("该员工不存在")
 
     def modify_examiner_info(self, new_account, new_password):
         """更改审核员账号信息"""
         # new account is same as others account, not allow
         if not self.account == new_account and CreditCardExaminer.objects.filter(account=new_account).exists():
-            raise ValueError("This account already exists.")
+            raise ValueError("该账号已存在（被他人占用）")
         else:
             self.account = new_account
         # new password is the same as the old one, not allow
         if self.password == new_password:
-            raise ValueError("New password is the same as the old one")
+            raise ValueError("新密码不能和旧密码相同")
         else:
             self.password = new_password
             self.save()
 
     def grant(self):
         if self.check_authority:
-            raise ValueError("This account is authorized, can't grant it.")
+            raise ValueError("该员工已被授权，无法重复授权")
         else:
             self.check_authority = True
 
     def revoke(self):
         if not self.check_authority:
-            raise ValueError("This account is not authorized, can't revoke it.")
+            raise ValueError("该员工无权限，无法收回权限")
         else:
             self.check_authority = False
 
@@ -245,6 +245,6 @@ class CreditCardApplication(models.Model):
             if application.apply_status:
                 return application.apply_result
             else:
-                return "Not ready yet."
+                return "申请还在审核中"
         except CreditCardApplication.DoesNotExist:
-            raise ValueError("Application not found.")
+            raise ValueError("未找到该申请")

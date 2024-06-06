@@ -352,7 +352,7 @@ def show_month_bill(request):
                 'account_in_id': bill.account_in_id,
                 'account_out_id': bill.account_out_id,
                 'transfer_amount': bill.transfer_amount,
-                'transfer_date': bill.transfer_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S')
+                'transfer_date': bill.transfer_date.strftime('%Y-%m-%d %H:%M:%S')
             })
 
         # Response setup
