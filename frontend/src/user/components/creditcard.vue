@@ -529,11 +529,11 @@ export default{
             let tableData = response.data.list;
             tableData.forEach(item => {
               let bill = {
-                bill_record_id: item.pk,
-                account_in_id: item.fields.account_in_id,
-                account_out_id: item.fields.account_out_id,
-                amount: item.fields.amount,
-                date: item.fields.date,
+                bill_record_id: item.transfer_record_id,
+                account_in_id: item.account_in_id,
+                account_out_id: item.account_out_id,
+                amount: item.amount,
+                date: item.date,
               };
               this.bills.push(bill);
             });

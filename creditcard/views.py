@@ -310,6 +310,8 @@ def show_month_bill(request):
         year = request.GET.get('year')
         month = request.GET.get('month')
         account_id = request.GET.get('account_id')
+        if not account_id:
+            raise ValueError("账号传递失败")
         if not year or not month:
             raise ValueError("请输入年月")  # Year and month parameters are required.
 
