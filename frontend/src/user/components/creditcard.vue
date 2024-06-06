@@ -1,6 +1,7 @@
 <template>
     <el-scrollbar height="100%" style="width: 100%; height: 100%">
-
+      <div style="margin-left:30px;font-size: 40px; margin-top: 20px; font-weight: bold">
+        信用卡</div>
       <div style="margin-left:20px; display: flex;flex-wrap: wrap; justify-content: start;">
         <!-- 申请信用卡接口 -->
         <el-button class="newCreditcardBox"  v-if="notHaveApplied" @click="newApplicationVisible = true">
@@ -21,7 +22,7 @@
             <div style="margin-left: 10px; text-align: start; font-size: 16px;">
               <p style="padding: 2.5px;"><span style="font-weight: bold">余额：</span>{{creditcard.balance}}</p>
               <p style="padding: 2.5px;"><span style="font-weight: bold">信用额度：</span>{{creditcard.limit}}</p>
-              <p style="padding: 2.5px;"><span style="font-weight: bold">开户日期：</span>{{creditcard.due_date}}</p>
+              <p style="padding: 2.5px;"><span style="font-weight: bold">开户日期：</span>{{creditcard.open_date}}</p>
               <p style="padding: 2.5px;">
                 <el-tag v-if="creditcard.is_frozen">已冻结</el-tag>
                 <el-tag v-if="creditcard.is_lost" style="margin-left: 10px">已挂失</el-tag>
@@ -300,7 +301,7 @@ export default{
       applyList: [
         {
           account_id: 1,
-          due_date: '2025-10-1',
+          open_date: '2025-10-1',
           limit: 1000,
           balance: 106.3,
           is_frozen: false,
@@ -604,6 +605,7 @@ export default{
             ElMessage.error("取消失败" + error);
           });
     },
+
   },
   mounted() {
     this.QueryCards();
