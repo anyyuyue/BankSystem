@@ -372,28 +372,6 @@ def show_month_bill(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
-def show_pay_info(request):
-    """
-    show the detail-information and result of a pay_record (show frontend result)
-    """
-    response = {}
-    try:
-        transaction = Transaction.objects.filter(
-            transfer_record_id=request.GET['transfer_record_id'],
-        )
-        response['list'] = json.loads(serializers.serialize('json', transaction))
-        response['status'] = 'success'
-        response['message'] = 'All payment infos have been saved.'
-        response['error_num'] = 0
-    except Exception as e:
-        response['status'] = 'error'
-        response['message'] = str(e)
-        response['error_num'] = 1
-
-    return JsonResponse(response)
-
-
 # 信用卡审核员部分----------------------------------------------------------------------------
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -658,10 +636,21 @@ def get_application_at(request):
     try:
         online_user_id = request.GET['online_user_id']
         applications = CreditCardApplication.objects.filter(online_user_id=online_user_id)
-
+        tz = pytz.timezone('Asia/Shanghai')
+        format_applications = []
+        for application in applications:
+            format_applications.append({
+                'apply_id': application.apply_id,
+                'apply_status': application.apply_status,
+                'apply_result': application.apply_result,
+                'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+                'examiner_id': application.creditCardExaminer_id,
+                'online_user_id': application.online_user_id,
+                'have_open': application.have_open,
+            })
         response['status'] = 'success'
         response['message'] = 'Get applications successfully.'
-        response['application_list'] = json.loads(serializers.serialize('json', applications))
+        response['list'] = format_applications
         response['error_num'] = 0
     except Exception as e:
         response['status'] = 'error'

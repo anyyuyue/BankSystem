@@ -4,9 +4,16 @@
         信用卡</div>
       <div style="margin-left:20px; display: flex;flex-wrap: wrap; justify-content: start;">
         <!-- 申请信用卡接口 -->
-        <el-button class="newCreditcardBox"  v-if="notHaveApplied" @click="newApplicationVisible = true">
+        <el-button class="creditcardBox" @click="newApplicationVisible = true">
           <el-icon style="height: 50px; width: 50px;">
             <Plus style="height: 100%; width: 100%;" />
+          </el-icon>
+        </el-button>
+
+        <!-- 查看申请接口 -->
+        <el-button class="creditcardBox"  @click="showApplyListVisible=true">
+          <el-icon style="height: 50px; width: 50px;">
+            <View style="height: 100%; width: 100%;" />
           </el-icon>
         </el-button>
 
@@ -98,6 +105,39 @@
               <el-button type="primary" @click="ConfirmApply">确定</el-button>
           </span>
       </template>
+      </el-dialog>
+
+      <!-- 查看申请 -->
+      <el-dialog v-model="showApplyListVisible" title="查看信用卡申请记录" width="50%" align-center>
+        <div style="display: flex; margin-bottom: 20px;">
+          <div style="margin-left: 2vw; margin-top: 20px; text-align: center;">
+            <el-button type="primary" @click="ConfirmShowApplyList">查询</el-button>
+          </div>
+          <div style="margin-left: 2vw; margin-top: 20px; text-align: center;">
+            <el-button type="primary" @click="showList=false,showApplyListVisible=false">退出</el-button>
+          </div>
+        </div>
+        <el-scrollbar height="100%" style="width: 100%; height: 100%">
+          <div style="display: flex;">
+            你的申请记录如下：
+          </div>
+          <el-table :data="applyList" v-if="showList" :table-layout="'auto'"
+            :default-sort="{ prop: 'date', order: 'ascending' }"
+            style="width: 100%; margin-left: 5px; margin-top: 30px; margin-right: 5px; max-width: 80vw;">
+            <el-table-column prop="apply_id" label="申请单号" sortable />
+            <el-table-column prop="apply_date" label="申请时间" />
+            <el-table-column prop="examiner_id" label="审核员ID" sortable />
+            <el-table-column prop="apply_status" label="审核状态">
+              <template v-slot ="scope">{{ scope.row.apply_status ? '已审核' : '待审核' }}</template>
+            </el-table-column>
+            <el-table-column prop="apply_result" label="审核结果">
+              <template v-slot ="scope">{{ scope.row.apply_result ? '通过' : '不通过' }}</template>
+            </el-table-column>
+            <el-table-column prop="have_open" label="开卡结果">
+              <template v-slot ="scope">{{ scope.row.apply_result ? '已开卡' : '未开卡' }}</template>
+            </el-table-column>
+          </el-table>
+        </el-scrollbar>
       </el-dialog>
 
       <!-- 冻结对话框 -->
@@ -267,6 +307,9 @@
           <el-table-column prop="date" label="交易时间" />
           <el-table-column prop="amount" label="交易金额" />
         </el-table>
+        <el-container v-if="isShow" style="margin-left: 1vw;font-weight: bold;">
+          {{billInfo.year}} 年 {{billInfo.month}} 月 支出{{out_amount}}元，收入{{in_amount}}元，结余{{total_amount}}元
+        </el-container>
       </el-dialog>
 
     </el-scrollbar>
@@ -275,10 +318,21 @@
 <script>
 import axios from "axios";
 import {ElMessage} from "element-plus";
-import {Coin, CreditCard, DocumentDelete, ShoppingCart, List, Lock, Key, Close} from "@element-plus/icons-vue";
+import {
+  Coin,
+  CreditCard,
+  DocumentDelete,
+  ShoppingCart,
+  List,
+  Lock,
+  Key,
+  Close,
+  Plus,
+  View
+} from "@element-plus/icons-vue";
 
 export default{
-  components: {Close, Key, CreditCard, List, Coin, ShoppingCart, DocumentDelete, Lock},
+  components: {View, Plus, Close, Key, CreditCard, List, Coin, ShoppingCart, DocumentDelete, Lock},
   data(){
     return{
       online_user_id: 1,
@@ -294,20 +348,18 @@ export default{
         },
       ],
       // apply new card
-      notHaveApplied: true,
       newApplicationVisible: false,
       // see the apply list
       showApplyListVisible: false,
+      showList: false,
       applyList: [
         {
-          account_id: 1,
-          open_date: '2025-10-1',
-          limit: 1000,
-          balance: 106.3,
-          is_frozen: false,
-          is_lost: false,
-          online_user_id: '10000', // online_user_id
-          card_type: '信用卡', // credit card
+          apply_id: 1,
+          apply_status: false,
+          apply_result: false,
+          apply_date: '2025-10-1',
+          examiner_id: 1,
+          have_open: false,
         },
       ],
       // frozen
@@ -362,6 +414,8 @@ export default{
       ViewBill: false,
       isShow: false, // 是否展示结果表格
       total_amount: 0,
+      in_amount: 0,
+      out_amount: 0,
       billInfo: {
         account_id: 2,
         year: 2024,
@@ -373,7 +427,7 @@ export default{
           account_in_id: 1,
           account_out_id: 2,
           amount: 123,
-          date: '2024 5.8-12:00',
+          date: '2024-5-8 12:00',
         },
       ],
 
@@ -526,14 +580,16 @@ export default{
           .then(response => {
             this.bills = [];
             this.total_amount = response.data.total_amount;
+            this.in_amount = response.data.in_amount;
+            this.out_amount = response.data.out_amount;
             let tableData = response.data.list;
             tableData.forEach(item => {
               let bill = {
                 bill_record_id: item.transfer_record_id,
                 account_in_id: item.account_in_id,
                 account_out_id: item.account_out_id,
-                amount: item.amount,
-                date: item.date,
+                amount: item.transfer_amount,
+                date: item.transfer_date,
               };
               this.bills.push(bill);
             });
@@ -605,7 +661,39 @@ export default{
             ElMessage.error("取消失败" + error);
           });
     },
-
+    ConfirmShowApplyList() {
+      console.log("show_list" + this.online_user_id)
+      axios.get("/api/get_application_at", {
+        params: {
+          online_user_id: this.online_user_id
+        }
+      })
+          .then(response => {
+            this.applyList = [];
+            let tableData = response.data.list;
+            tableData.forEach(item => {
+              let apply = {
+                apply_id: item.apply_id,
+                apply_result: item.apply_result,
+                apply_status: item.apply_status,
+                apply_date: item.apply_date,
+                examiner_id: item.examiner_id,
+                have_open: item.have_open,
+              };
+              this.applyList.push(apply);
+            })
+            if (response.data.status === 'success') {
+              ElMessage.success("查询成功");
+              this.showList = true;
+              this.QueryCards();
+            } else {
+              ElMessage.error("查询失败: " + response.data.message);
+            }
+          })
+          .catch(error => {
+            ElMessage.error("查询失败" + error);
+          });
+    },
   },
   mounted() {
     this.QueryCards();
@@ -616,22 +704,12 @@ export default{
 <style scoped>
 .creditcardBox {
   height:380px;
-  width: 275px;
+  width: 250px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   text-align: center;
   margin-top: 40px;
   margin-left: 28px;
   margin-right: 10px;
   padding: 15px 10px 8px 8px;
-}
-.newCreditcardBox {
-  height: 380px;
-  width: 275px;
-  margin-top: 40px;
-  margin-left: 28px;
-  margin-right: 10px;
-  padding: 15px 10px 8px 8px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  text-align: center;
 }
 </style>

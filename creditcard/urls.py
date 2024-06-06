@@ -18,7 +18,7 @@ urlpatterns = [
     path('pay_to', views.pay_to),
     # 用户支付  account_in_id=1&account_out_id=2&amount=1000&password=123
     path('show_month_bill', views.show_month_bill),
-    # 用户查看月账单  account_id=1&year=2024&month=5
+    # 用户查看月账单  http://127.0.0.1:8000/api/show_month_bill?year=2024&month=6&account_id=2
     path('update_limit', views.update_limit),
     # 用户更新信用卡余额  account_id=1&amount=2000&password=123
     path('cancel_card', views.cancel_card),
