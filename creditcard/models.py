@@ -157,10 +157,14 @@ class CreditCard(models.Model):
             raise ValueError("当前信用卡已被冻结或挂失")
         elif pay_account.password != pay_password:
             raise ValueError("还款账户密码错误")
+        elif self.account_id == pay_account.account_id:
+            raise Warning("还款账户与当前账户不能一样")
         elif pay_account.is_frozen or pay_account.is_lost:
             raise ValueError("还款账户已被被冻结或挂失，不能还款")
         elif pay_account.balance < amount:
             raise ValueError("还款账户余额不足（还款不能透支信用）")
+        elif self.balance >= 0:
+            raise Warning("账户无需还款，余额≥0")
         else:
             pay_account.balance -= amount
             self.balance += amount
