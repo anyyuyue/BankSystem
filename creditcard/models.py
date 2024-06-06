@@ -224,6 +224,10 @@ class CreditCardApplication(models.Model):
 
     @staticmethod
     def new_apply(online_user_id):
+        # query is exists non-check application
+        exist = CreditCardApplication.objects.filter(online_user=online_user_id, apply_status=False).exists()
+        if exist:
+            raise ValueError("您有未审核的申请，请不要重复提交")
         new_application = CreditCardApplication()
         new_application.online_user = Online_user.objects.get(person_id=online_user_id)
         new_application.save()
