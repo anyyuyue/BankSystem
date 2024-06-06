@@ -60,7 +60,16 @@ def add_new_card(request):
         body = json.loads(body_unicode)
 
         online_user_id = body.get('online_user_id')
+        apply_id = body.get('apply_id')
+        print(apply_id)
+
         CreditCard().new_card(online_user_id)
+
+        # Change the application state of 'have_open'
+        application = CreditCardApplication.objects.get(apply_id=apply_id)
+        print(application)
+        application.have_open = True
+        application.save()
 
         # Prepare the response dictionary
         response['status'] = 'success'
@@ -565,6 +574,7 @@ def get_check_applications(request):
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                 'examiner_id': application.creditCardExaminer.credit_examiner_id,
                 'online_user_id': application.online_user_id,
+                'have_open': application.have_open,
             })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'

@@ -289,7 +289,6 @@ export default{
           balance: 106.3,
           is_frozen: false,
           is_lost: false,
-          online_user_id: '10000', // online_user_id
           card_type: '信用卡', // credit card
         },
       ],
@@ -437,11 +436,11 @@ export default{
       })
           .then(response => {
             if (response.data.status === 'success') {
-              ElMessage.success("冻结成功");
+              ElMessage.success("挂失成功");
               this.ReportLoss = false;
               this.QueryCards();
             } else {
-              ElMessage.error("冻结失败: " + response.data.message);
+              ElMessage.error("挂失失败: " + response.data.message);
             }
           })
           .catch(error => {
@@ -490,7 +489,7 @@ export default{
           })
           .catch(error => {
             console.error('Error ConfirmChangeState:', error);
-            ElMessage.error("更新失败" + error);
+            ElMessage.error("支付失败" + error);
           });
     },
     ConfirmRepayCredit() {
