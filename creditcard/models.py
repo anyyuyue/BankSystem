@@ -192,7 +192,7 @@ class CreditCard(models.Model):
             self.save()
 
     def check_card(self):
-        if self.balance < self.credit_limit:
+        if self.balance < - self.credit_limit:
             self.is_frozen = True
             self.save()
             return False
