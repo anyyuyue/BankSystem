@@ -107,7 +107,6 @@ class CreditCard(models.Model):
         self.password = new_password
         self.save()
 
-
     def report_lost(self, password):
         """挂失信用卡，并自动冻结卡"""
         if password != self.password:
@@ -191,6 +190,7 @@ class CreditCardApplication(models.Model):
     apply_status = models.BooleanField(default=False)
     apply_result = models.BooleanField(default=False)
     apply_date = models.DateTimeField(default=timezone.now)
+    have_open = models.BooleanField(default=False)
 
     DEFAULT_CREDIT_LIMIT = 1000.0  # 默认信用额度
 

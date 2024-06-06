@@ -32,7 +32,7 @@ urlpatterns = [
 
 
     path('add_new_card', views.add_new_card),
-    # 审核员新建卡  online_user_id=1
+    # 审核员新建卡  online_user_id=1&apply_id=1
     path('get_check_applications', views.get_check_applications),  # 审核员看
     # 显示所有的申请 http://127.0.0.1:8000/api/get_check_applications
     path('get_uncheck_applications', views.get_uncheck_applications),  # 审核员看

@@ -22,6 +22,19 @@ def get_cards(request):
         if not online_user_id:
             raise ValueError("online_user_id is required")
         cards = CreditCard.objects.filter(online_user=Online_user.objects.get(person_id=online_user_id))
+
+        tz = pytz.timezone('Asia/Shanghai')
+        formatted_cards = []
+        for card in cards:
+            formatted_cards.append({
+                'account_id': card.account_id,
+                'card_type': card.card_type,
+                'credit_limit': card.credit_limit,
+                'balance': card.balance,
+                'is_frozen': card.is_frozen,
+                'is_lost': card.is_lost,
+                'due_date': card.due_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
+            })
         response['status'] = 'success'
         response['message'] = 'Cards show successfully.'
         response['error_num'] = 0
@@ -47,7 +60,16 @@ def add_new_card(request):
         body = json.loads(body_unicode)
 
         online_user_id = body.get('online_user_id')
+        apply_id = body.get('apply_id')
+        print(apply_id)
+
         CreditCard().new_card(online_user_id)
+
+        # Change the application state of 'have_open'
+        application = CreditCardApplication.objects.get(apply_id=apply_id)
+        print(application)
+        application.have_open = True
+        application.save()
 
         # Prepare the response dictionary
         response['status'] = 'success'
@@ -549,6 +571,7 @@ def get_check_applications(request):
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                 'examiner_id': application.creditCardExaminer.credit_examiner_id,
                 'online_user_id': application.online_user_id,
+                'have_open': application.have_open,
             })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
