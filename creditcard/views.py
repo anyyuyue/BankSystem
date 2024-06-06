@@ -38,7 +38,7 @@ def get_cards(request):
         response['status'] = 'success'
         response['message'] = 'Cards show successfully.'
         response['error_num'] = 0
-        response['list'] = json.loads(serializers.serialize('json', cards))
+        response['list'] = formatted_cards
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)
