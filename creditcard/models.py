@@ -218,6 +218,7 @@ class CreditCardApplication(models.Model):
     apply_status = models.BooleanField(default=False)
     apply_result = models.BooleanField(default=False)
     apply_date = models.DateTimeField(default=timezone.now)
+    have_open = models.BooleanField(default=False)
 
     DEFAULT_CREDIT_LIMIT = 1000.0  # 默认信用额度
 

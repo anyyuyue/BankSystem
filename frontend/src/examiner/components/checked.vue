@@ -3,7 +3,7 @@
 
     <!-- 标题 -->
     <div style="margin-top: 20px; margin-left: 40px; font-size: 2em; font-weight: bold;">
-        已审核的信用卡申请单
+        信用卡申请单
     </div>
 
     <!-- 记录 --> 
@@ -12,18 +12,19 @@
         style="width: 100%; margin-left: 50px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
         <el-table-column prop="apply_id" label="序号" sortable width="100"/>
         <el-table-column prop="apply_date" label="申请时间" sortable width="200"/>
-        <el-table-column prop="account_id" label="申请人ID" width="100"/>
-        <el-table-column prop="asset" label="信誉" width="150"/>
-        <el-table-column prop="examiner_id" label="审核员ID" width="150" />
-        <el-table-column prop="apply_result" label="申请结果" width="150" >
+        <el-table-column prop="account_id" label="申请人ID" width="140"/>
+        <el-table-column prop="asset" label="信誉" width="140"/>
+        <el-table-column prop="examiner_id" label="审核员ID" width="140" />
+        <el-table-column prop="apply_result" label="申请结果" width="140" >
           <template v-slot ="scope">{{ scope.row.apply_result ? '通过' : '不通过' }}</template>
         </el-table-column>
-      <el-table-column prop="apply_result" label="开户状态" width="150" >
+      <el-table-column prop="apply_result" label="开户状态" width="140" >
           <template v-slot ="scope">{{ scope.row.have_open ? '已开户' : '未开户' }}</template>
         </el-table-column>
         <el-table-column label="具体操作" width="150" >
           <template v-slot="scope">
-            <el-button link type="primary"  :disabled="scope.row.have_open" @click="this.newCardVisible=true,
+            <el-button link type="primary"  :disabled="scope.row.have_open || scope.row.apply_result===false"
+                       @click="this.newCardVisible=true,
               this.newCardApplyId=scope.row.apply_id,
               this.newCardUserId=scope.row.account_id">开户</el-button>
           </template>

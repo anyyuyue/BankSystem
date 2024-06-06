@@ -67,7 +67,6 @@ def add_new_card(request):
 
         # Change the application state of 'have_open'
         application = CreditCardApplication.objects.get(apply_id=apply_id)
-        print(application)
         application.have_open = True
         application.save()
 
@@ -559,7 +558,7 @@ def delete_examiner(request):
 @require_http_methods(["GET"])
 def get_check_applications(request):
     """
-    show all applications, return all applications
+    show all checked applications, return all applications
     """
     response = {}
     try:
@@ -572,9 +571,9 @@ def get_check_applications(request):
                 'apply_status': application.apply_status,
                 'apply_result': application.apply_result,
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                'examiner_id': application.creditCardExaminer.credit_examiner_id,
+                'examiner_id': application.creditCardExaminer_id,
                 'online_user_id': application.online_user_id,
-                'have_open': application.have_open,
+                'have_open':application.have_open,
             })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
@@ -604,7 +603,7 @@ def get_uncheck_applications(request):
                 'apply_status': application.apply_status,
                 'apply_result': application.apply_result,
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                'examiner_id': application.creditCardExaminer.credit_examiner_id,
+                'examiner_id': application.creditCardExaminer_id,
                 'online_user_id': application.online_user_id,
             })
         response['status'] = 'success'
@@ -694,10 +693,7 @@ def change_application_state(request):
 
         # Get the result and examiner_id
         apply_result = body.get('apply_result')
-        examiner_id = body.get('examiner_id')
-
-        if not apply_result or not examiner_id:
-            raise ValueError("apply_result and examiner_id are required")
+        examiner_id = int(body.get('examiner_id'))
 
         # Update the apply_status and apply_result
         apply.change_state(apply_result, examiner_id)

@@ -15,7 +15,7 @@
         <el-table-column prop="account_id" label="申请人ID" />
         <el-table-column prop="asset" label="申请人信誉" />
 
-        <el-table-column label="具体操作">
+        <el-table-column fixed="right" label="具体操作">
           <template v-slot="scope">
             <el-button link type="primary"  @click="this.checkInfo.apply_id = scope.row.apply_id,
               this.checkAssetVisible = true;">审核</el-button>
@@ -28,8 +28,8 @@
     <el-dialog v-model="checkAssetVisible" title="审核" width="30%" align-center>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
           申请结果：
-        <el-select v-model="checkInfo.apply_result" style="width: 12.5vw;">
-          <el-option v-for="type in result_types" :key="type.value" :label="type.label" :value="type.value" />
+        <el-select v-model="this.checkInfo.apply_result" style="width: 12.5vw;">
+          <el-option v-for="type in result_types" :key="type.value" :label="type.label" :value="type.value"/>
         </el-select>
       </div>
 
@@ -65,18 +65,11 @@ export default {
       checkInfo: {
         examiner_id: '',
         apply_id: '',
-        apply_result: true,
+        apply_result: '',
       },
-      result_types: [
-        {
-          value: true,
-          label: '通过',
-        },
-        {
-          value:false,
-          label: '不通过',
-
-        }
+       result_types: [
+          { value: true, label: '通过',},
+        { value: false, label: '不通过',}
       ]
     }
   },
