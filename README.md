@@ -26,7 +26,6 @@
 `python manage.py runserver` 或者是 `python3 manage.py runserver` 
 
 访问写好的内容只需要在浏览器中访问配置好的路由，问号后面是需要的参数，例如:
-`http://127.0.0.1:8000/api/pay_to?account_in_id=1&account_out_id=2&amount=1000`
 `http://127.0.0.1:8000/api/show_month_bill?account_in_id=1&year=2024&month=5`
 界面上出现数据库内容即连接成功
 
