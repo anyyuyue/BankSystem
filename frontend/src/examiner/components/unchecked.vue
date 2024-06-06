@@ -27,10 +27,6 @@
     <!-- 审核对话框 -->
     <el-dialog v-model="checkAssetVisible" title="审核" width="30%" align-center>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-          审核员ID：
-          <el-input v-model="checkInfo.examiner_id" style="width: 12.5vw;" clearable />
-      </div>
-      <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
           申请结果：
         <el-select v-model="checkInfo.apply_result" style="width: 12.5vw;">
           <el-option v-for="type in result_types" :key="type.value" :label="type.label" :value="type.value" />
@@ -55,6 +51,7 @@ import {ElMessage} from "element-plus";
 export default {
   data() {
     return {
+      examiner_id: 2,
       tableData: [
         {
           apply_id:'',
@@ -104,7 +101,7 @@ export default {
       axios.post("/api/change_application_state",
       {
         apply_id: this.checkInfo.apply_id,
-        examiner_id: this.checkInfo.examiner_id,
+        examiner_id: this.examiner_id,
         apply_result: this.checkInfo.apply_result,
       })
           .then(response => {

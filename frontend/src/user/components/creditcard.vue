@@ -1,15 +1,22 @@
 <template>
     <el-scrollbar height="100%" style="width: 100%; height: 100%">
 
-      <!--信用卡信息显示卡片-->
       <div style="margin-left:20px; display: flex;flex-wrap: wrap; justify-content: start;">
+        <!-- 申请信用卡接口 -->
+        <el-button class="newCreditcardBox"  v-if="notHaveApplied" @click="newApplicationVisible = true">
+          <el-icon style="height: 50px; width: 50px;">
+            <Plus style="height: 100%; width: 100%;" />
+          </el-icon>
+        </el-button>
+
+        <!-- 信用卡信息显示卡片 -->
         <div class="creditcardBox" v-for="creditcard in creditcards" :key="creditcard.account_id">
           <div>
             <!-- 卡片标题 -->
             <div style="font-size: 25px; font-weight: bold;">No. {{creditcard.account_id}}</div>
-  
+
             <el-divider />
-  
+
             <!-- 卡片内容 -->
             <div style="margin-left: 10px; text-align: start; font-size: 16px;">
               <p style="padding: 2.5px;"><span style="font-weight: bold">未还金额：</span>{{creditcard.balance}}</p>
@@ -24,32 +31,73 @@
             <el-divider />
 
             <!-- 卡片操作 -->
-            <div style="margin-top: 10px; display:flex">
+            <div style="margin-top: 10px; margin-left: 35px; display:flex; ">
+
+              <!-- 冻结信用卡 -->
               <el-button @click="this.newFreezeCredit.account_id=creditcard.account_id,
-                this.freezeCreditVisible=true" style="background-color: #87CEEB;">冻结</el-button>
+                this.freezeCreditVisible=true" type="primary" circle>
+                 <el-icon><Lock /></el-icon>
+              </el-button>
+
+              <!-- 挂失信用卡 -->
               <el-button  @click="this.newReportLoss.account_id=creditcard.account_id,
-                this.ReportLoss = true" style="background-color: #87CEEB;" >挂失</el-button>
-              <el-button  @click="this.newUpdateLimit.account_id=creditcard.account_id,
-                this.UpdateLimit=true" style="background-color: #87CEEB; width: 95px;">
-                更新额度
+                this.ReportLoss = true" type="primary" circle >
+                <el-icon><DocumentDelete /></el-icon>
+              </el-button>
+
+              <!-- 取消信用卡 -->
+              <el-button @click="this.cancelCardInfo.account_id=creditcard.account_id,
+                this.CancelCard=true" circle type="primary">
+                <el-icon><Close /></el-icon>
+              </el-button>
+
+              <!-- 更新密码 -->
+              <el-button @click="this.newPassword.account_id=creditcard.account_id,
+                this.UpdatePassword=true" circle type="primary">
+                <el-icon><Key /></el-icon>
               </el-button>
             </div>
 
-            <div style="margin-top: 3px; display:flex" >
-              <el-button  @click="this.newPayBill.account_id=creditcard.account_id,
-                this.PayBill=true" style="background-color: #87CEEB;">
-                付款
+            <div style="margin-top: 3px; margin-left: 35px; display:flex" >
+
+              <!-- 更新额度 -->
+              <el-button  @click="this.newUpdateLimit.account_id=creditcard.account_id,
+                this.UpdateLimit=true" type="primary" circle>
+                <el-icon><Coin /></el-icon>
               </el-button>
+
+              <!-- 支付功能 -->
+              <el-button @click="this.newPayBill.account_id=creditcard.account_id,
+                this.PayBill=true"  type="primary" circle>
+                <el-icon><ShoppingCart /></el-icon>
+              </el-button>
+
+              <!-- 信用卡还款 -->
               <el-button @click="this.newRepayCredit.account_id=creditcard.account_id,
-                this.RepayCredit=true" style="background-color: #87CEEB;">
-                还款
+                this.RepayCredit=true" type="primary" circle>
+                <el-icon><CreditCard /></el-icon>
               </el-button>
+
+              <!-- 查看月账单 -->
               <el-button  @click="this.billInfo.account_id=creditcard.account_id,
-              this.ViewBill = true" style="background-color: #87CEEB;">查看月账单</el-button>
+              this.ViewBill = true" type="primary" circle>
+                <el-icon><List /></el-icon>
+              </el-button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 申请信用卡对话框 -->
+      <el-dialog v-model="newApplicationVisible" title="申请信用卡" width="30%" align-center>
+      您确定使用当前用户信息申请新的信用卡吗？
+      <template #footer>
+          <span>
+              <el-button @click="this.newApplicationVisible = false">取消</el-button>
+              <el-button type="primary" @click="ConfirmApply">确定</el-button>
+          </span>
+      </template>
+      </el-dialog>
 
       <!-- 冻结对话框 -->
       <el-dialog v-model="freezeCreditVisible" title="冻结信用卡" width="30%" align-center>
@@ -82,6 +130,22 @@
         </template>
         </el-dialog>
 
+      <!-- 取消对话框 -->
+      <el-dialog v-model="CancelCard" title="取消信用卡" width="30%" align-center>
+        <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+            输入密码：
+            <el-input v-model="cancelCardInfo.password" style="width: 12.5vw;" clearable />
+        </div>
+
+        <template #footer>
+            <span>
+                <el-button @click="this.CancelCard = false">取消</el-button>
+                <el-button type="primary" @click="ConfirmCancel"
+                    :disabled="cancelCardInfo.password.length === 0">确定</el-button>
+            </span>
+        </template>
+        </el-dialog>
+
       <!--更新额度对话框-->
       <el-dialog v-model="UpdateLimit" title="更新额度" width="30%" align-center>
         <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
@@ -98,6 +162,27 @@
                     <el-button @click="this.UpdateLimit = false">取消</el-button>
                     <el-button type="primary" @click="ConfirmUpdateLimit"
                         :disabled="newUpdateLimit.account_id.length === 0 || newUpdateLimit.limit.length === 0">确定</el-button>
+                </span>
+            </template>
+      </el-dialog>
+
+      <!--更新密码对话框-->
+      <el-dialog v-model="UpdatePassword" title="更新密码" width="30%" align-center>
+        <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          旧密码：
+          <el-input v-model="newPassword.old_password" style="width: 12.5vw;" clearable />
+        </div>
+        <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          新密码：
+          <el-input v-model="newPassword.new_password" style="width: 12.5vw;" clearable />
+        </div>
+
+        <template #footer>
+                <span>
+                    <el-button @click="this.UpdatePassword=false">取消</el-button>
+                    <el-button type="primary" @click="ConfirmUpdatePassword"
+                        :disabled="newPassword.new_password.length === 0 || newPassword.old_password.length === 0">
+                      确定</el-button>
                 </span>
             </template>
       </el-dialog>
@@ -189,12 +274,31 @@
 <script>
 import axios from "axios";
 import {ElMessage} from "element-plus";
+import {Coin, CreditCard, DocumentDelete, ShoppingCart, List, Lock, Key, Close} from "@element-plus/icons-vue";
 
 export default{
+  components: {Close, Key, CreditCard, List, Coin, ShoppingCart, DocumentDelete, Lock},
   data(){
     return{
       online_user_id: 1,
       creditcards: [
+        {
+          account_id: 1,
+          due_date: '2025-10-1',
+          limit: 1000,
+          balance: 106.3,
+          is_frozen: false,
+          is_lost: false,
+          online_user_id: '10000', // online_user_id
+          card_type: '信用卡', // credit card
+        },
+      ],
+      // apply new card
+      notHaveApplied: true,
+      newApplicationVisible: false,
+      // see the apply list
+      showApplyListVisible: false,
+      applyList: [
         {
           account_id: 1,
           due_date: '2025-10-1',
@@ -218,12 +322,25 @@ export default{
         account_id: '',
         password: '',
       },
+      // cancel card
+      CancelCard: false,
+      cancelCardInfo: {
+        account_id: 1,
+        password: ''
+      },
       // update limits
       UpdateLimit: false,
       newUpdateLimit: {
         account_id: '',
         password: '',
         limit: 1500,
+      },
+      // update password
+      UpdatePassword: false,
+      newPassword: {
+        account_id: 1,
+        old_password: '',
+        new_password: '',
       },
       // pay bill
       PayBill: false,
@@ -432,6 +549,62 @@ export default{
             ElMessage.error("查询失败" + error);
           });
     },
+    ConfirmApply() {
+      axios.post("/api/new_application", {
+        online_user_id: this.online_user_id
+      })
+          .then(response => {
+            if (response.data.status === 'success') {
+              ElMessage.success("申请已提交");
+              this.newApplicationVisible = false;
+              this.QueryCards();
+            } else {
+              // console.log(this.online_user_id)
+              ElMessage.error("申请提交失败: " + response.data.message);
+            }
+          })
+          .catch(error => {
+            // console.log(this.online_user_id)
+            ElMessage.error("申请提交失败" + error);
+          });
+    },
+    ConfirmUpdatePassword() {
+      axios.post("/api/change_password", {
+        account_id: this.newPassword.account_id,
+        old_password: this.newPassword.old_password,
+        new_password: this.newPassword.new_password
+      })
+          .then(response => {
+            if (response.data.status === 'success') {
+              ElMessage.success("修改成功");
+              this.UpdatePassword = false;
+              this.QueryCards();
+            } else {
+              ElMessage.error("修改失败: " + response.data.message);
+            }
+          })
+          .catch(error => {
+            ElMessage.error("修改失败" + error);
+          });
+    },
+    ConfirmCancel() {
+      axios.post("/api/cancel_card", {
+        account_id: this.cancelCardInfo.account_id,
+        password: this.cancelCardInfo.password
+      })
+          .then(response => {
+            if (response.data.status === 'success') {
+              ElMessage.success("取消成功");
+              this.CancelCard = false;
+              this.QueryCards();
+            } else {
+              ElMessage.error("取消失败: " + response.data.message);
+            }
+          })
+          .catch(error => {
+            ElMessage.error("取消失败" + error);
+          });
+    },
   },
   mounted() {
     this.QueryCards();
@@ -441,26 +614,22 @@ export default{
 
 <style scoped>
 .creditcardBox {
-  height:420px;
+  height:380px;
   width: 275px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   text-align: center;
   margin-top: 40px;
-  margin-left: 27.5px;
+  margin-left: 28px;
   margin-right: 10px;
-  padding: 7.5px;
-  padding-right: 10px;
-  padding-top: 15px;
+  padding: 15px 10px 8px 8px;
 }
 .newCreditcardBox {
-  height: 420px;
+  height: 380px;
   width: 275px;
   margin-top: 40px;
-  margin-left: 27.5px;
+  margin-left: 28px;
   margin-right: 10px;
-  padding: 7.5px;
-  padding-right: 10px;
-  padding-top: 15px;
+  padding: 15px 10px 8px 8px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   text-align: center;
 }

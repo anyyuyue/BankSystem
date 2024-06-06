@@ -193,7 +193,7 @@ export default{
       }).then(response => {
             if(response.data.status === 'success'){
               ElMessage.success("修改成功");
-              this.newExaminerVisible = false;
+              this.modifyExaminerVisible = false;
               this.QueryExaminers();
             }else{
               ElMessage.error("修改失败"+ response.data.message);
@@ -213,7 +213,7 @@ export default{
            if(response.data.status === 'success'){
              ElMessage.success("删除成功");
               this.QueryExaminers();
-              this.newExaminerVisible = false;
+              this.deleteExaminerVisible = false;
            }else{
              ElMessage.error("删除失败"+ response.data.message);
            }
@@ -232,7 +232,7 @@ export default{
             // let status =  response.data.status
             if(response.data.status === 'success'){
               ElMessage.success("权限变更成功");
-              this.newExaminerVisible = false;
+              this.changeAuthorityVisible = false;
               this.QueryExaminers();
             }else {
               ElMessage.error("权限变更失败"+ response.data.message);
@@ -251,7 +251,7 @@ export default{
           .then(response => {
             if(response.data.status === 'success'){
               ElMessage.success("权限变更成功");
-              this.newExaminerVisible = false;
+              this.changeAuthorityVisible = false;
               this.QueryExaminers();
             }else{
               ElMessage.error("权限变更失败"+ response.data.message);

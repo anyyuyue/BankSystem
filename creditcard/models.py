@@ -94,13 +94,19 @@ class CreditCard(models.Model):
         new_card.save()
         return new_card
 
-    def modify_password(self, new_password):
+    def modify_password(self, new_password, old_password):
         """更改信用卡密码，输入新密码"""
-        if not self.password == new_password:
-            self.password = new_password
-            self.save()
-        else:
-            raise ValueError("New password is the same as the old one")
+        if old_password != self.password:
+            raise ValueError("密码不匹配")
+        elif new_password == self.password:
+            raise ValueError("新密码与旧密码相同")
+        elif self.is_lost:
+            raise ValueError("此卡已挂失")
+        elif self.is_frozen:
+            raise ValueError("此卡已冻结")
+        self.password = new_password
+        self.save()
+
 
     def report_lost(self, password):
         """挂失信用卡，并自动冻结卡"""
@@ -116,8 +122,10 @@ class CreditCard(models.Model):
             self.save()
             return True
 
-    def cancel_card(self):
+    def cancel_card(self, password):
         """取消信用卡，删除记录"""
+        if password != self.password:
+            raise ValueError("密码不匹配")
         self.delete()
         return True
 
@@ -131,26 +139,6 @@ class CreditCard(models.Model):
             self.credit_limit = amount
             self.save()
             return True
-
-    # def credit_repay(self, amount, pay_account_id):
-    #     """还款，输入还款金额"""
-    #     if amount < 0.0:
-    #         raise ValueError("Amount cannot be negative.")
-    #     if pay_account_id is None:
-    #         if self.balance - amount >= 0.0:
-    #             self.balance -= amount
-    #             self.credit_limit = self.DEFAULT_CREDIT_LIMIT
-    #         else:
-    #             raise ValueError("No pay account and card balance is not enough to repay.")
-    #     else:
-    #         pay_account = CreditCard.objects.get(account_id=pay_account_id)
-    #         if pay_account.balance - amount >= 0.0:
-    #             pay_account.balance -= amount
-    #             self.credit_limit = self.DEFAULT_CREDIT_LIMIT
-    #             pay_account.save()
-    #         else:
-    #             raise ValueError("Both card and pay account's balance is not enough to repay.")
-    #     self.save()
 
     def frozen_card(self, password):
         """冻结信用卡"""

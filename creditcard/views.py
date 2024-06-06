@@ -63,22 +63,25 @@ def add_new_card(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def change_password(request):
     """
     Change the password of a credit card and return the card
     """
     response = {}
     try:
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        account_id = body.get('account_id')
+        new_password = body.get('new_password')
+        old_password = body.get('old_password')
 
         # Fetch the credit card using the account_id from URL parameters
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-
-        # Get the new password from the parsed data
-        new_password = request.GET['new_password']
+        card = CreditCard.objects.get(account_id=account_id)
 
         # Update the password
-        card.modify_password(new_password)
+        card.modify_password(new_password, old_password)
         card.save()
 
         response['status'] = 'success'
@@ -156,11 +159,17 @@ def update_limit(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def cancel_card(request):
     response = {}
     try:
-        card = CreditCard.objects.get(account_id=request.GET['account_id'])
-        card.cancel_card()
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        account_id = body.get('account_id')
+        password = body.get('password')
+        card = CreditCard.objects.get(account_id=account_id)
+        card.cancel_card(password)
         response['status'] = 'success'
         response['message'] = 'Card has been cancelled.'
         response['error_num'] = 0
@@ -268,64 +277,6 @@ def pay_to(request):
         response['error_num'] = 1
 
     return JsonResponse(response)
-
-
-# @require_http_methods(["GET"])
-# def show_month_bill(request):
-#     response = {}
-#     try:
-#         year = request.GET['year']
-#         month = request.GET['month']
-#         if not year or not month:
-#             raise ValueError("请输入年月")  # Year and month parameters are required.
-#
-#         # Ensuring the account_id is provided
-#         account_id = request.GET.get('account_id')
-#         if not account_id:
-#             raise ValueError("请输入要查询的账号")  # Account ID is required.
-#
-#         # Convert dates to the local timezone
-#         local_tz = timezone.get_default_timezone()
-#
-#         in_bill = Transaction.objects.filter(
-#             account_in_id=account_id,
-#             transfer_date__year=year,
-#             transfer_date__month=month
-#         ).annotate(
-#             local_date=ExpressionWrapper(F('transfer_date'), output_field=DateTimeField())
-#         ).filter(
-#             local_date__year=year,
-#             local_date__month=month
-#         )
-#
-#         out_bill = Transaction.objects.filter(
-#             account_out_id=account_id,
-#             transfer_date__year=year,
-#             transfer_date__month=month
-#         ).annotate(
-#             local_date=ExpressionWrapper(F('transfer_date'), output_field=DateTimeField())
-#         ).filter(
-#             local_date__year=year,
-#             local_date__month=month
-#         )
-#
-#         in_total_amount = in_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
-#         out_total_amount = out_bill.aggregate(Sum('transfer_amount'))['transfer_amount__sum'] or 0
-#
-#         bill = list(chain(in_bill, out_bill))
-#         response['total_amount'] = in_total_amount - out_total_amount
-#         response['in_amount'] = in_total_amount
-#         response['out_amount'] = out_total_amount
-#         response['list'] = json.loads(serializers.serialize('json', bill))
-#         response['status'] = 'success'
-#         response['message'] = 'All bills have been saved.'
-#         response['error_num'] = 0
-#     except Exception as e:
-#         response['status'] = 'error'
-#         response['message'] = str(e)
-#         response['error_num'] = 1
-#
-#     return JsonResponse(response)
 
 
 @require_http_methods(["GET"])
@@ -596,7 +547,7 @@ def get_check_applications(request):
                 'apply_status': application.apply_status,
                 'apply_result': application.apply_result,
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                'examiner_id': application.creditCardExaminer,
+                'examiner_id': application.creditCardExaminer.credit_examiner_id,
                 'online_user_id': application.online_user_id,
             })
         response['status'] = 'success'
@@ -627,7 +578,7 @@ def get_uncheck_applications(request):
                 'apply_status': application.apply_status,
                 'apply_result': application.apply_result,
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
-                'examiner_id': application.creditCardExaminer,
+                'examiner_id': application.creditCardExaminer.credit_examiner_id,
                 'online_user_id': application.online_user_id,
             })
         response['status'] = 'success'
@@ -642,22 +593,26 @@ def get_uncheck_applications(request):
     return JsonResponse(response)
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["POST"])
 def new_application(request):
     """
     User applies for a new credit card application, and return the application details.
     """
     response = {}
     try:
-        online_user_id = request.GET['online_user_id']
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        online_user_id = body.get('online_user_id')
+        if not online_user_id:
+            raise ValueError("online_user_id is required")
 
         # Create a new application using the obtained online_user
-        application = CreditCardApplication().new_apply(online_user_id)
+        CreditCardApplication().new_apply(online_user_id)
 
         response['status'] = 'success'
         response['message'] = 'New application has been created.'
         response['error_num'] = 0
-        response['application'] = serialize('json', [application], ensure_ascii=False)
 
     except Exception as e:
         response['status'] = 'error'
