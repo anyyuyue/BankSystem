@@ -417,9 +417,9 @@ export default{
       in_amount: 0,
       out_amount: 0,
       billInfo: {
-        account_id: 2,
-        year: 2024,
-        month: 5,
+        account_id: 1,
+        year: '',
+        month: '',
       },
       bills: [
         {
@@ -435,7 +435,7 @@ export default{
   },
   methods: {
     QueryCards() {
-      axios.get("/api/get_cards", {
+      axios.get("/creditcard/get_cards", {
         params: {
           online_user_id: this.online_user_id
         }
@@ -464,7 +464,7 @@ export default{
     },
     ConfirmFreezeCredit() {
       console.log("freeze:" + this.newFreezeCredit.account_id)
-      axios.post("/api/frozen_card",
+      axios.post("/creditcard/frozen_card",
       {
         account_id: this.newFreezeCredit.account_id,
         password: this.newFreezeCredit.password,
@@ -484,7 +484,7 @@ export default{
           });
     },
     ConfirmReportLoss() {
-      axios.post("/api/lost_card",
+      axios.post("/creditcard/lost_card",
       {
         account_id: this.newReportLoss.account_id,
         password: this.newReportLoss.password,
@@ -505,7 +505,7 @@ export default{
     },
     ConfirmUpdateLimit() {
       // console.log("account_id:" + this.newUpdateLimit.account_id)
-      axios.post("/api/update_limit",
+      axios.post("/creditcard/update_limit",
       {
         account_id: this.newUpdateLimit.account_id,
         password: this.newUpdateLimit.password,
@@ -526,7 +526,7 @@ export default{
           });
     },
     ConfirmPayBill() {
-      axios.post("/api/pay_to",
+      axios.post("/creditcard/pay_to",
       {
         account_out_id: this.newPayBill.account_id,
         account_in_id: this.newPayBill.PayTo_id,
@@ -548,7 +548,7 @@ export default{
           });
     },
     ConfirmRepayCredit() {
-      axios.post("/api/repay",
+      axios.post("/creditcard/repay",
       {
         account_id: this.newRepayCredit.account_id,
         pay_account: this.newRepayCredit.pay_account,
@@ -570,7 +570,7 @@ export default{
           });
     },
     ConfirmQueryBill() {
-      axios.get("/api/show_month_bill", {
+      axios.get("/creditcard/show_month_bill", {
         params: {
           month: this.billInfo.month,
           year: this.billInfo.year,
@@ -606,7 +606,7 @@ export default{
           });
     },
     ConfirmApply() {
-      axios.post("/api/new_application", {
+      axios.post("/creditcard/new_application", {
         online_user_id: this.online_user_id
       })
           .then(response => {
@@ -625,7 +625,7 @@ export default{
           });
     },
     ConfirmUpdatePassword() {
-      axios.post("/api/change_password", {
+      axios.post("/creditcard/change_password", {
         account_id: this.newPassword.account_id,
         old_password: this.newPassword.old_password,
         new_password: this.newPassword.new_password
@@ -644,7 +644,7 @@ export default{
           });
     },
     ConfirmCancel() {
-      axios.post("/api/cancel_card", {
+      axios.post("/creditcard/cancel_card", {
         account_id: this.cancelCardInfo.account_id,
         password: this.cancelCardInfo.password
       })
@@ -663,7 +663,7 @@ export default{
     },
     ConfirmShowApplyList() {
       console.log("show_list" + this.online_user_id)
-      axios.get("/api/get_application_at", {
+      axios.get("/creditcard/get_application_at", {
         params: {
           online_user_id: this.online_user_id
         }

@@ -75,7 +75,7 @@ export default {
   },
   methods: {
     QueryApplications() {
-      axios.get("/api/get_uncheck_applications")
+      axios.get("/creditcard/get_uncheck_applications")
           .then(response => {
             this.tableData = [];
             let tableData = response.data.list;
@@ -91,7 +91,7 @@ export default {
           })
     },
     ConfirmChangeState() {
-      axios.post("/api/change_application_state",
+      axios.post("/creditcard/change_application_state",
       {
         apply_id: this.checkInfo.apply_id,
         examiner_id: this.examiner_id,

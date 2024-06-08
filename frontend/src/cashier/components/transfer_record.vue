@@ -68,7 +68,7 @@ export default {
     async QueryMonthBill() {
       this.tableData = [] // 清空列表
       try {
-        const response = await axios.get('/api/show_month_bill', {
+        const response = await axios.get('/creditcard/show_month_bill', {
           params: {
             account_id: this.toQueryInID,
             year: this.toQueryYear,

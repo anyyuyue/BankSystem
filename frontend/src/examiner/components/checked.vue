@@ -72,7 +72,7 @@ export default {
   },
   methods: {
     QueryApplications() {
-      axios.get("/api/get_check_applications")
+      axios.get("/creditcard/get_check_applications")
           .then(response => {
             this.tableData = [];
             let tableData = response.data.list;
@@ -93,7 +93,7 @@ export default {
     },
     ConfirmNewCard() {
       console.log(this.newCardApplyId)
-      axios.post("/api/add_new_card",
+      axios.post("/creditcard/add_new_card",
       {
         online_user_id: this.newCardUserId,
         apply_id: this.newCardApplyId,

@@ -80,10 +80,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         # change the content to your local database information
-        'NAME': 'BankSystem',
+        'NAME': 'creditcard',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'Sql_201208',
         'HOST': 'localhost',
+        'PORT': 1024,
     }
 }
 

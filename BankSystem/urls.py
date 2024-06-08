@@ -20,5 +20,5 @@ from creditcard import urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    re_path('api/', include(urls)),
+    re_path('creditcard/', include(urls)),
 ]
