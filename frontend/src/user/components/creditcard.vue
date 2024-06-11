@@ -98,13 +98,32 @@
 
       <!-- 申请信用卡对话框 -->
       <el-dialog v-model="newApplicationVisible" title="申请信用卡" width="30%" align-center>
-      您确定使用当前用户信息申请新的信用卡吗？
-      <template #footer>
-          <span>
-              <el-button @click="this.newApplicationVisible = false">取消</el-button>
-              <el-button type="primary" @click="ConfirmApply">确定</el-button>
-          </span>
-      </template>
+       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          年收入：
+          <el-input v-model="newApplicationInfo.annual_income" style="width: 12.5vw;" clearable />
+         元
+       </div>
+        <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          总资产：
+          <el-input v-model="newApplicationInfo.property_valuation" style="width: 12.5vw;" clearable />
+          元
+        </div>
+        <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
+          总工龄：
+          <el-input v-model="newApplicationInfo.service_year" style="width: 12.5vw;" clearable />
+          年
+        </div>
+
+
+        <template #footer>
+            <span>
+                <el-button @click="this.newApplicationVisible = false">取消</el-button>
+                <el-button type="primary" @click="ConfirmApply"
+                  :disabled="newApplicationInfo.annual_income === 0 ||
+                  newApplicationInfo.property_valuation === 0 ||
+                  newApplicationInfo.service_year === 0  ">确定</el-button>
+            </span>
+        </template>
       </el-dialog>
 
       <!-- 查看申请 -->
@@ -349,6 +368,11 @@ export default{
       ],
       // apply new card
       newApplicationVisible: false,
+      newApplicationInfo: {
+        annual_income: 0.0,
+        property_valuation: 0.0,
+        service_year: 0,
+      },
       // see the apply list
       showApplyListVisible: false,
       showList: false,
@@ -607,7 +631,10 @@ export default{
     },
     ConfirmApply() {
       axios.post("/creditcard/new_application", {
-        online_user_id: this.online_user_id
+        online_user_id: this.online_user_id,
+        annual_income: this.newApplicationInfo.annual_income,
+        property_valuation: this.newApplicationInfo.property_valuation,
+        service_year: this.newApplicationInfo.service_year,
       })
           .then(response => {
             if (response.data.status === 'success') {

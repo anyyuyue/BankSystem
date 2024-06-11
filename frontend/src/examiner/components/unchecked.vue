@@ -51,7 +51,7 @@ import {ElMessage} from "element-plus";
 export default {
   data() {
     return {
-      examiner_id: 2,
+      examiner_id: 1,
       tableData: [
         {
           apply_id:'',

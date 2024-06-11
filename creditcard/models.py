@@ -56,6 +56,9 @@ class CreditCardExaminer(models.Model):
 class Online_user(models.Model):
     person_id = models.AutoField(primary_key=True)
     identity_card = models.CharField(max_length=18, default='000000000000000000')
+    annual_income = models.FloatField(null=True)
+    property_valuation = models.FloatField(null=True)
+    service_year = models.IntegerField(null=True)
 
 
 # 信用卡模型

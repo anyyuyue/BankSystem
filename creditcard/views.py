@@ -676,6 +676,18 @@ def new_application(request):
         online_user_id = body.get('online_user_id')
         if not online_user_id:
             raise ValueError("online_user_id is required")
+        else:
+            print(online_user_id)
+
+        annual_income = float(body.get('annual_income'))
+        property_valuation = float(body.get('property_valuation'))
+        service_year = body.get('service_year')
+
+        online_user_ = Online_user.objects.get(person_id=online_user_id)
+        online_user_.annual_income = annual_income
+        online_user_.property_valuation = property_valuation
+        online_user_.service_year = service_year
+        online_user_.save()
 
         # Create a new application using the obtained online_user
         CreditCardApplication().new_apply(online_user_id)
