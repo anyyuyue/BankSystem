@@ -119,9 +119,9 @@
             <span>
                 <el-button @click="this.newApplicationVisible = false">取消</el-button>
                 <el-button type="primary" @click="ConfirmApply"
-                  :disabled="newApplicationInfo.annual_income === 0 ||
-                  newApplicationInfo.property_valuation === 0 ||
-                  newApplicationInfo.service_year === 0  ">确定</el-button>
+                  :disabled="newApplicationInfo.annual_income <= 0 ||
+                  newApplicationInfo.property_valuation <= 0 ||
+                  newApplicationInfo.service_year < 0  ">确定</el-button>
             </span>
         </template>
       </el-dialog>
