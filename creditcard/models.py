@@ -118,7 +118,7 @@ class CreditCard(models.Model):
         self.delete()
         return True
 
-    def update_credit_limit(self, password, amount):
+    def update_credit_limit(self, password):
         """更新信用额度"""
         if password != self.password:
             raise ValueError("密码不匹配")
@@ -127,9 +127,47 @@ class CreditCard(models.Model):
         elif not self.check_card():
             raise ValueError("信用卡已透支，请还款后再申请更新额度")
         else:
-            self.credit_limit = amount
+            # loan_records = LoanRecord.objects.all()
+            # for loan_record in loan_records:
+            #     if loan_record.is_overdue:
+            #         self.credit_limit = 0
+            #         self.save()
+            # 获取卡对应user的财产信息以及该卡的存取转账信息
+            user = Online_user.objects.get(person_id=self.online_user_id)
+            # deposit_records = deposit_record.objects.filter(account_id=self.account_id)
+            # withdrawal_records = withdrawal_record.objects.filter(account_id=self.account_id)
+            transfer_in_records = Transaction.objects.filter(account_in_id=self.account_id)
+            transfer_out_records = Transaction.objects.filter(account_out_id=self.account_id)
+            # total_income = sum(record.deposit_amount for record in deposit_records) + sum(
+            #     record.transfer_amount for record in transfer_in_records)
+            # income_frequency = deposit_records.count() + transfer_in_records.count()
+            # total_outcome = sum(record.withdrawal_amount for record in withdrawal_records) + sum(
+            #     record.transfer_amount for record in transfer_out_records)
+            # outcome_frequency = withdrawal_records.count() + transfer_out_records.count()
+            total_income = sum(record.transfer_amount for record in transfer_in_records)
+            income_frequency = transfer_in_records.count()
+            total_outcome = sum(record.transfer_amount for record in transfer_out_records)
+            outcome_frequency = transfer_out_records.count()
+
+            annual_income_parameter = 0
+            if user.service_year is None or user.service_year == 0:
+                annual_income_parameter = 0
+            elif user.service_year <= 20:
+                annual_income_parameter = user.service_year / 20.0
+            else:
+                annual_income_parameter = 1
+
+            # 一般转入频率低而转出频率高，需要对转出的数据进行补偿
+            per_income = 0
+            per_outcome = 0
+            if income_frequency != 0:
+                per_income = total_income / income_frequency
+            if outcome_frequency != 0:
+                per_outcome = total_outcome / outcome_frequency
+            credit_limit = user.property_valuation *0.3 + user.annual_income * annual_income_parameter * 0.5 + (
+                        per_income * 0.1 - per_outcome * 0.8) * 450
+            self.credit_limit = credit_limit
             self.save()
-            return True
 
     def frozen_card(self, password):
         """冻结信用卡"""

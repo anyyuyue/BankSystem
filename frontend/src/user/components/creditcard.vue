@@ -28,7 +28,7 @@
             <!-- 卡片内容 -->
             <div style="margin-left: 10px; text-align: start; font-size: 16px;">
               <p style="padding: 2.5px;"><span style="font-weight: bold">余额：</span>{{creditcard.balance}}</p>
-              <p style="padding: 2.5px;"><span style="font-weight: bold">信用额度：</span>{{creditcard.limit}}</p>
+              <p style="padding: 2.5px;"><span style="font-weight: bold">信用额度：</span>{{creditcard.credit_limit}}</p>
               <p style="padding: 2.5px;"><span style="font-weight: bold">开户日期：</span>{{creditcard.open_date}}</p>
               <p style="padding: 2.5px;">
                 <el-tag v-if="creditcard.is_frozen">已冻结</el-tag>
@@ -212,16 +212,11 @@
           输入密码：
           <el-input v-model="newUpdateLimit.password" style="width: 12.5vw;" clearable />
         </div>
-        <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-          更新额度：
-          <el-input v-model="newUpdateLimit.limit" style="width: 12.5vw;" clearable />
-        </div>
-
         <template #footer>
                 <span>
                     <el-button @click="this.UpdateLimit = false">取消</el-button>
                     <el-button type="primary" @click="ConfirmUpdateLimit"
-                        :disabled="newUpdateLimit.account_id.length === 0 || newUpdateLimit.limit.length === 0">确定</el-button>
+                        :disabled="newUpdateLimit.account_id.length === 0 ">确定</el-button>
                 </span>
             </template>
       </el-dialog>
@@ -359,7 +354,7 @@ export default{
         {
           account_id: 1,
           open_date: '',
-          limit: 1000,
+          credit_limit: '',
           balance: 106.3,
           is_frozen: false,
           is_lost: false,
@@ -409,7 +404,6 @@ export default{
       newUpdateLimit: {
         account_id: '',
         password: '',
-        limit: 1500,
       },
       // update password
       UpdatePassword: false,
@@ -474,7 +468,7 @@ export default{
                 balance: item.balance,
                 card_type: item.card_type,
                 open_date: item.open_date,
-                limit: item.credit_limit,
+                credit_limit: item.credit_limit,
                 is_frozen: item.is_frozen,
                 is_lost: item.is_lost,
               };
@@ -533,7 +527,6 @@ export default{
       {
         account_id: this.newUpdateLimit.account_id,
         password: this.newUpdateLimit.password,
-        amount: this.newUpdateLimit.limit,
       })
           .then(response => {
             if (response.data.status === 'success') {

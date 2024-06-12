@@ -19,8 +19,6 @@ def get_cards(request):
     response = {}
     try:
         online_user_id = request.GET.get('online_user_id')
-        if not online_user_id:
-            raise ValueError("online_user_id is required")
         tz = pytz.timezone('Asia/Shanghai')
         cards = CreditCard.objects.filter(online_user=Online_user.objects.get(person_id=online_user_id))
         formatted_cards = []
@@ -160,14 +158,13 @@ def update_limit(request):
         account_id = body.get('account_id')
         if not account_id:
             raise ValueError("account_id is required")
-        amount = body.get('amount')
-        if not amount:
-            raise ValueError("amount is required")
+
         password = body.get('password')
         if not password:
             raise ValueError("password is required")
         card = CreditCard.objects.get(account_id=account_id)
-        card.update_credit_limit(password, amount)
+
+        card.update_credit_limit(password)
 
         response['status'] = 'success'
         response['message'] = 'Limit has been updated.'
@@ -611,6 +608,22 @@ def get_check_applications(request):
         applications = CreditCardApplication.objects.filter(apply_status=1)
         formatted_applications = []
         for application in applications:
+            online_user = Online_user.objects.get(person_id=application.online_user_id)
+            if online_user.service_year >= 20:
+                s = (online_user.service_year * 20 + 0.0001 * online_user.annual_income / 20 +
+                     0.0002 * online_user.property_valuation / 20)
+            else:
+                s = (online_user.service_year * online_user.service_year +
+                     0.0001 * online_user.annual_income / online_user.service_year +
+                     0.0002 * online_user.property_valuation / online_user.service_year)
+            if s >= 320:
+                credit = '优秀'
+            elif s >= 250:
+                credit = '良好'
+            elif s >= 150:
+                credit = '一般'
+            else:
+                credit = '较差'
             formatted_applications.append({
                 'apply_id': application.apply_id,
                 'apply_status': application.apply_status,
@@ -619,6 +632,7 @@ def get_check_applications(request):
                 'examiner_id': application.creditCardExaminer_id,
                 'online_user_id': application.online_user_id,
                 'have_open': application.have_open,
+                'credit': credit,
             })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
@@ -643,6 +657,24 @@ def get_uncheck_applications(request):
         applications = CreditCardApplication.objects.filter(apply_status=0)
         formatted_applications = []
         for application in applications:
+
+            online_user = Online_user.objects.get(person_id=application.online_user_id)
+            if online_user.service_year >= 20:
+                s = (online_user.service_year * 20 + 0.0001 * online_user.annual_income / 20 +
+                     0.0002 * online_user.property_valuation / 20)
+            else:
+                s = (online_user.service_year * online_user.service_year +
+                      0.0001 * online_user.annual_income / online_user.service_year +
+                    0.0002 * online_user.property_valuation / online_user.service_year)
+            if s >= 320:
+                credit = '优秀'
+            elif s >= 250:
+                credit = '良好'
+            elif s >= 150:
+                credit = '一般'
+            else:
+                credit = '较差'
+
             formatted_applications.append({
                 'apply_id': application.apply_id,
                 'apply_status': application.apply_status,
@@ -650,6 +682,7 @@ def get_uncheck_applications(request):
                 'apply_date': application.apply_date.astimezone(tz).strftime('%Y-%m-%d %H:%M:%S'),
                 'examiner_id': application.creditCardExaminer_id,
                 'online_user_id': application.online_user_id,
+                'credit': credit,
             })
         response['status'] = 'success'
         response['message'] = 'Applications show successfully.'
